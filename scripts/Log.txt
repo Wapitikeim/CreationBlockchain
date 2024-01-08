@@ -18,40 +18,8 @@ INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender
 
 INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operator_type.cc:69 WM_operatortype_find: search for unknown operator 'CURVES_OT_disable_selection', 'CURVES_OT_disable_selection'
 
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.select(deselect_all=True, location=(1102, 439))
+INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.select(deselect_all=True, location=(1011, 370))
 INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_select'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.rotate()
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.zoom(delta=1)
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_zoom'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:829 operator_last_properties_init_impl: loading previous properties for 'VIEW3D_OT_zoom'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.zoom(delta=1)
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_zoom'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:829 operator_last_properties_init_impl: loading previous properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.rotate()
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:829 operator_last_properties_init_impl: loading previous properties for 'VIEW3D_OT_zoom'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.zoom(delta=-1)
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_zoom'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:829 operator_last_properties_init_impl: loading previous properties for 'VIEW3D_OT_zoom'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.zoom(delta=-1)
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_zoom'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:829 operator_last_properties_init_impl: loading previous properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.rotate()
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:829 operator_last_properties_init_impl: loading previous properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.rotate()
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:829 operator_last_properties_init_impl: loading previous properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.rotate()
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:829 operator_last_properties_init_impl: loading previous properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.rotate()
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:829 operator_last_properties_init_impl: loading previous properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.rotate()
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_rotate'
-INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:829 operator_last_properties_init_impl: loading previous properties for 'VIEW3D_OT_rotate'
 INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_event_system.cc:1081 wm_operator_reports: bpy.ops.view3d.rotate()
 INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:884 WM_operator_last_properties_store: storing properties for 'VIEW3D_OT_rotate'
 INFO (wm.operator): C:\Users\blender\git\blender-v400\blender.git\source\blender\windowmanager\intern\wm_operators.cc:829 operator_last_properties_init_impl: loading previous properties for 'VIEW3D_OT_rotate'

@@ -38,3 +38,9 @@ class Blockchain:
     #of What? That the Blockchain owner is rightous?
     def checkValidity(self):
         pass
+
+    def loadBlockchainFromFile(self):
+        pass 
+
+    def writeBlockchainToFile(self):
+        pass 

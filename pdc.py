@@ -49,6 +49,7 @@ def startBlenderAndStartTakingScreenshots():
     blenderHandler = threading.Thread(target=startBlender)
     blenderHandler.start()
     makeScreenshotsBasedOnLogChanges()
+    blenderHandler.join()
 
 
 #makeScreenshotsBasedJustOnTimer(20)
