@@ -1,11 +1,7 @@
-from tkinter import *
-from tkinter import ttk
+import tkinter as tk
+from gui import MainApplication
 
-from pdc import startBlenderAndStartTakingScreenshots
-
-root = Tk()
-frm = ttk.Frame(root, padding=20)
-frm.grid()
-ttk.Label(frm, text="Hello World!").grid(column=0, row=0)
-ttk.Button(frm, text="Screenshot", command=startBlenderAndStartTakingScreenshots).grid(column=1, row=0)
-root.mainloop()
+if __name__ == '__main__':
+   root = tk.Tk()
+   main_app = MainApplication(root)
+   main_app.master.mainloop()
