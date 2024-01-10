@@ -17,6 +17,7 @@ class MainApplication(tk.Frame):
     passwordLabel = tk.Label
     loggedInUserLabel = tk.Label
     currentBlockchainLabel = tk.Label
+    blockCountOfBlockchain = tk.Label 
     #Entrys
     usernameEntry = tk.Entry
     passwordEntry = tk.Entry
@@ -24,6 +25,7 @@ class MainApplication(tk.Frame):
     loginButton = tk.Button
     startBlenderButton = tk.Button
     createGifFromScreenshotsButton = tk.Button
+    backFromActiveBlockchainButton = tk.Button
 
     loadBlockchainButton = tk.Button
     createNewBlockchainButton = tk.Button
@@ -46,7 +48,8 @@ class MainApplication(tk.Frame):
     def createUIAfterLogin(self):
         self.addInfoPanel()
         self.addLoadCreateBlockchainButtons()
-    
+    def start(self):
+        self.master.mainloop()
     #Button Logic
     def validateLoginData(self):
         userID = self.usernameEntry.get()
@@ -82,6 +85,7 @@ class MainApplication(tk.Frame):
         self.addInfoPanel()
         self.removeLoadCreateBlockchainButtons()
         self.addBlenderAndGifButtons()
+        self.addBackFromActiveBlockchainButton()
     def createNewBlockchainFile(self):
         newBlockchainName = simpledialog.askstring("Create Blockchain", "Please enter a Name for the Blockchain")
         if not newBlockchainName:
@@ -95,6 +99,16 @@ class MainApplication(tk.Frame):
         self.addInfoPanel()
         self.removeLoadCreateBlockchainButtons()
         self.addBlenderAndGifButtons()
+        self.addBackFromActiveBlockchainButton()
+    def backFromActiveBlockchain(self):
+        self.currentBlockchain = ""
+        self.currentBlockchainName = "None"
+        
+        self.removeBackFromActiveBlockchainButton()
+        self.removeBlenderAndGifButtons()
+        self.removeInfoPanel()
+        self.addInfoPanel()
+        self.addLoadCreateBlockchainButtons()
 
     #Buttons/Labels add
     def addLogin(self):
@@ -125,6 +139,12 @@ class MainApplication(tk.Frame):
         self.loggedInUserLabel.pack(side="top", anchor="ne")
         self.currentBlockchainLabel = tk.Label(self.master, text="Blockchain: \n" +self.currentBlockchainName)
         self.currentBlockchainLabel.pack(side="top", anchor="ne")
+        """ if (self.currentBlockchainName != "None"):
+            self.blockCountOfBlockchain = tk.Label(self.master, text="Blockcount: \n" + str(self.currentBlockchain.getHighestIndex()+1))
+            self.blockCountOfBlockchain.pack(side="top", anchor="ne") """
+    def addBackFromActiveBlockchainButton(self):
+        self.backFromActiveBlockchainButton = tk.Button(self.master, text="Back", command=self.backFromActiveBlockchain, height=3, width=12)
+        self.backFromActiveBlockchainButton.pack(side="bottom", anchor="se", expand=False)
     #Buttons/Labels remove
     def removeBlenderAndGifButtons(self):
         self.startBlenderButton.forget()
@@ -135,6 +155,10 @@ class MainApplication(tk.Frame):
     def removeInfoPanel(self):
         self.loggedInUserLabel.forget()
         self.currentBlockchainLabel.forget()
+        """ if self.blockCountOfBlockchain.winfo_ismapped(self):
+            self.blockCountOfBlockchain.forget() """
+    def removeBackFromActiveBlockchainButton(self):
+        self.backFromActiveBlockchainButton.forget()
     def removeLogin(self):
         self.usernameLabel.pack_forget()
         self.passwordLabel.pack_forget()
