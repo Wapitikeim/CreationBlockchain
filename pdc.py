@@ -50,8 +50,7 @@ def takeScreenshotOfMonitor1AndWriteThemIntoABlockchain(blockchainRef):
             newIndex = blockchainRef.getHighestIndex()
             newIndex +=1
             blockchainRef.addNewBlockForScreenshots(Block(newIndex, newNameWithTimestamp.strip(".png"), newNameWithTimestamp, ""))
-        
-        
+              
 def startBlender():
     subprocess.run([r"scripts\blenderStart.bat"], shell=False, capture_output=False)
 
@@ -64,7 +63,7 @@ def makeScreenshotsBasedOnLogChangesAndWriteThemIntoABlockchain(blockchainRef, b
             if(newTime != oldTime):
                 takeScreenshotOfMonitor1AndWriteThemIntoABlockchain(blockchainRef)
             oldTime = newTime
-            time.sleep(0.25)
+            time.sleep(0.1)
         shutil.rmtree("media/Screenshots/")
         os.mkdir("media/Screenshots/")
     except KeyboardInterrupt:

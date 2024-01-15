@@ -1,0 +1,4 @@
+[    ]   0 {00000221CA663688} type='Global Undo', name='Original'
+[    ]   1 {00000221CA662A08} type='Global Undo', name='Select'
+[    ]   2 {00000221CA662B08} type='Global Undo', name='Move'
+[* M ]   3 {00000221CA662C08} type='Global Undo', name='Move'
