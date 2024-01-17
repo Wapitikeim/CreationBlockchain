@@ -55,13 +55,21 @@ def writeUndoStepsIntoFile():
     binary_stream.close()
     undo_steps = undo_steps_dump.split("\n")[1:-1]
     with open('C:/Users/Wenz/Desktop/CreationBlockchain/scripts/undo_log.txt', 'w') as undoSteps:
+        i = 0
         for step in undo_steps:
             undoSteps.write(step)
             undoSteps.write("\n")
+            i+=1
+    return i 
 
-def every_2_seconds():
+
+
+def everySecond():
     writeUndoStepsIntoFile()
-    bpy.ops.screen.screenshot(filepath="//C://Users//Wenz//Desktop//CreationBlockchain//media//Screenshots//output.png")
-    return 2.0
+    """ blender is just taking screenshots too slowly :/
+    if(newCount != oldCount):
+        oldCount = newCount
+        bpy.ops.screen.screenshot(filepath="//C://Users//Wenz//Desktop//CreationBlockchain//out_put.png") """
+    return 0.1
 
-bpy.app.timers.register(every_2_seconds, persistent=True)
+bpy.app.timers.register(everySecond, persistent=True)

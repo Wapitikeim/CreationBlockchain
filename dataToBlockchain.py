@@ -46,6 +46,13 @@ def returnLineCountOfBlockchain(blockchainName) ->int:
     blockchainRead.close()
     return ref
 
+def getLineCountOFFile(fileName) ->int:
+    fileRead = open(fileName, "r") 
+    fileReadStr = fileRead.read().splitlines()
+    ref = len(fileReadStr)
+    fileRead.close()
+    return ref
+
 
 
 #Examp
