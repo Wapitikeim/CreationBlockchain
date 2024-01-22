@@ -2,8 +2,9 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import simpledialog
 import hashlib
-
+from PIL import ImageTk
 import os
+from base64 import b64decode
 
 from blockchain import *
 
@@ -18,22 +19,41 @@ class MainApplication(tk.Frame):
     loggedInUserLabel = tk.Label
     currentBlockchainLabel = tk.Label
     blockCountOfBlockchain = tk.Label 
+    loadedScreenshot = tk.Label
+    screenshotCommand = tk.Label
     #Entrys
     usernameEntry = tk.Entry
     passwordEntry = tk.Entry
     #Buttons
+    #-Login
     loginButton = tk.Button
+    createNewUserButton = tk.Button
+    #-LoadedUser
+    logoffButton = tk.Button
+    loadBlockchainButton = tk.Button
+    createNewBlockchainButton = tk.Button
+    #-LoadedBlockchain
     startBlenderButton = tk.Button
     createGifFromScreenshotsButton = tk.Button
     backFromActiveBlockchainButton = tk.Button
-
-    loadBlockchainButton = tk.Button
-    createNewBlockchainButton = tk.Button
+    #-LoadedScreenshot
+    nextScreenshotButton = tk.Button
+    previousScreenshotButton = tk.Button
+    
+    #Frames
+    global loginCreateFrame 
+    global createLoadFrame
+    global startBackFrame
+    global infoFrame
+    global imageFrame
 
     #UserData
     successfullyLoggedInUser = ""
+    successfullyLoggedInUserHash = ""
     currentBlockchainName = "None"
     currentBlockchain = ""
+    global loadedImage
+    currentIndexOfLoadedImage = "-1"
 
     def __init__(self, master):
         self.master = master
@@ -44,8 +64,9 @@ class MainApplication(tk.Frame):
     #Setup
     def configure_gui(self):
         self.master.title("Creation Blockchain")
-        self.master.geometry("500x500")
+        self.master.geometry("300x150")
     def createUIAfterLogin(self):
+        self.master.geometry("1280x720")
         self.addInfoPanel()
         self.addLoadCreateBlockchainButtons()
     def start(self):
@@ -65,7 +86,8 @@ class MainApplication(tk.Frame):
         UserDatabaseLines = UserDatabase.read().splitlines()
         for entry in UserDatabaseLines:
             if(entry==userHash):
-                self.successfullyLoggedInUser = userHash
+                self.successfullyLoggedInUser = userID
+                self.successfullyLoggedInUserHash = userHash
                 self.removeLogin()
                 UserDatabase.close()
                 self.createUIAfterLogin()
@@ -76,7 +98,7 @@ class MainApplication(tk.Frame):
         if not filePath:
             return
         self.currentBlockchainName = os.path.basename(filePath)
-        self.currentBlockchain = Blockchain(self.successfullyLoggedInUser, self.currentBlockchainName, True)
+        self.currentBlockchain = Blockchain(self.successfullyLoggedInUserHash, self.currentBlockchainName, True)
         if(self.currentBlockchain.allowedToModify == False):
             self.currentBlockchainName = "None"
             self.currentBlockchain = ""
@@ -85,7 +107,8 @@ class MainApplication(tk.Frame):
         self.addInfoPanel()
         self.removeLoadCreateBlockchainButtons()
         self.addBlenderAndGifButtons()
-        self.addBackFromActiveBlockchainButton()
+        self.addImageDisplay(-1)
+        #self.addBackFromActiveBlockchainButton()
     def createNewBlockchainFile(self):
         newBlockchainName = simpledialog.askstring("Create Blockchain", "Please enter a Name for the Blockchain")
         if not newBlockchainName:
@@ -93,75 +116,168 @@ class MainApplication(tk.Frame):
         if newBlockchainName[-4:] != ".txt":
             newBlockchainName = newBlockchainName + ".txt"
         self.currentBlockchainName = newBlockchainName
-        self.currentBlockchain = Blockchain(self.successfullyLoggedInUser, self.currentBlockchainName, False)
+        self.currentBlockchain = Blockchain(self.successfullyLoggedInUserHash, self.currentBlockchainName, False)
 
         self.removeInfoPanel()
         self.addInfoPanel()
         self.removeLoadCreateBlockchainButtons()
         self.addBlenderAndGifButtons()
-        self.addBackFromActiveBlockchainButton()
+        #self.addBackFromActiveBlockchainButton()
     def backFromActiveBlockchain(self):
         self.currentBlockchain = ""
         self.currentBlockchainName = "None"
         
-        self.removeBackFromActiveBlockchainButton()
         self.removeBlenderAndGifButtons()
         self.removeInfoPanel()
+        self.removeImageDisplay()
         self.addInfoPanel()
         self.addLoadCreateBlockchainButtons()
+    def logOffUser(self):
+        self.successfullyLoggedInUser = ""
+        self.removeInfoPanel()
+        self.removeLoadCreateBlockchainButtons()
+        self.addLogin()
+        self.master.geometry("300x150")
+    def createNewUserButtonLogic(self):
+        self.usernameLabel.config(text="New User:")
+        self.passwordLabel.config(text="New Password")
+        self.loginButton.config(text="Create", command=self.createNewUser)
+        self.createNewUserButton.config(text="Back",command=self.backFromCreateMenu)
+    def backFromCreateMenu(self):
+        self.removeLogin()
+        self.addLogin() 
+    def createNewUser(self):
+        if self.checkIfGivenUserExists():
+            userID = self.usernameEntry.get()
+            password = self.passwordEntry.get()
+            userHashString = str(userID)+str(password)
+            userHash = hashlib.sha512(userHashString.encode()).hexdigest()
+            UserDatabase = open("scripts/UserDatabase.txt", "a")
+            UserDatabase.write(userHash)
+            UserDatabase.write("\n")
+            UserDatabase.close()
+            print("Successfully created the User " + userID)
+            self.backFromCreateMenu()
+        else:
+            return
+    def nextScreenshot(self):
+        if self.currentIndexOfLoadedImage == -1:
+            return
+        if self.currentIndexOfLoadedImage <= 0 | self.currentIndexOfLoadedImage >= self.currentBlockchain.getHighestIndex():
+            return
+        self.removeImageDisplay()
+        self.addImageDisplay(self.currentIndexOfLoadedImage+1)
+    def previousScreenshot(self):
+        if self.currentIndexOfLoadedImage == -1:
+            self.removeImageDisplay()
+            self.addImageDisplay(int(self.currentBlockchain.getLatestBlock().block_Header.index)-1)
+            return
+        if self.currentIndexOfLoadedImage > 0 and self.currentIndexOfLoadedImage-1 != 0:
+            self.removeImageDisplay()
+            self.addImageDisplay(self.currentIndexOfLoadedImage-1)
 
     #Buttons/Labels add
-    def addLogin(self):
-        self.usernameLabel = tk.Label(self.master, text="Username:")
-        self.passwordLabel = tk.Label(self.master, text="Password:")
-        self.usernameEntry = tk.Entry(self.master)
-        self.passwordEntry = tk.Entry(self.master, show="*")
-        self.loginButton = tk.Button(self.master, text="Login", command=self.validateLoginData)
-
-        self.usernameLabel.pack(side="top", anchor="nw")
-        self.usernameEntry.pack(side="left", anchor="nw")
-        self.passwordLabel.pack(side="top",anchor="nw")
-        self.passwordEntry.pack(side="left", anchor="nw")
-        self.loginButton.pack()
     def addBlenderAndGifButtons(self):
-        self.startBlenderButton = tk.Button(self.master, text="StartBlender", command=lambda:startBlenderAndStartTakingScreenshots(self.currentBlockchain), height=3, width=12, bg="orange")
-        self.startBlenderButton.pack(side="bottom", anchor="se", expand=False)
-        self.createGifFromScreenshotsButton = tk.Button(self.master, text="CreateGif", command=lambda:self.currentBlockchain.loadAllImagesFromBlockchainAndCreateGif(), height=3, width=12)
-        self.createGifFromScreenshotsButton.pack(side="bottom", anchor="se", expand=False) 
+        self.startBackGifFrame = tk.Frame(self.master)
+        self.startBackGifFrame.columnconfigure(1,weight=1)
+        self.startBlenderButton = tk.Button(self.startBackGifFrame,height=3, width=14,bg="orange", text="StartBlender", command=lambda:startBlenderAndStartTakingScreenshots(self.currentBlockchain))
+        self.createGifFromScreenshotsButton = tk.Button(self.startBackGifFrame, height=3, width=14, text="CreateGif", command=lambda:self.currentBlockchain.loadAllImagesFromBlockchainAndCreateGif(self.currentBlockchainName.strip(".txt")))
+        self.startBackGifFrame.pack(side="bottom",fill="both")
+        self.startBlenderButton.grid(column=2,row=0,sticky="e")
+        self.createGifFromScreenshotsButton.grid(column=0,row=0,sticky="w") 
     def addLoadCreateBlockchainButtons(self):
-        self.loadBlockchainButton = tk.Button(self.master, text="Load Blockchain",height=3, width=12, command=self.askForBlockchainFile)
-        self.loadBlockchainButton.pack(side="bottom", anchor="sw", expand=False)
-        self.createNewBlockchainButton = tk.Button(self.master, text="Create Blockchain",height=3, width=12, command=self.createNewBlockchainFile)
-        self.createNewBlockchainButton.pack(side="bottom", anchor="sw", expand=False)
+        self.createLoadFrame = tk.Frame(self.master)
+        self.createLoadFrame.columnconfigure(1,weight=1)
+        self.loadBlockchainButton = tk.Button(self.createLoadFrame, text="Load Blockchain",height=3, width=14, command=self.askForBlockchainFile)
+        self.createNewBlockchainButton = tk.Button(self.createLoadFrame, text="Create Blockchain",height=3, width=14, command=self.createNewBlockchainFile)
+        self.createLoadFrame.pack(side="bottom", fill="both")
+        self.createNewBlockchainButton.grid(column=2,row=0,sticky="e")
+        self.loadBlockchainButton.grid(column=0,row=0,sticky="w")
     def addInfoPanel(self):
-        trimmedLoggedInUserStr = self.successfullyLoggedInUser[0] + self.successfullyLoggedInUser[1] + self.successfullyLoggedInUser[2] + self.successfullyLoggedInUser[3]
-        self.loggedInUserLabel = tk.Label(self.master, text="User: \n" + trimmedLoggedInUserStr)
-        self.loggedInUserLabel.pack(side="top", anchor="ne")
-        self.currentBlockchainLabel = tk.Label(self.master, text="Blockchain: \n" +self.currentBlockchainName)
-        self.currentBlockchainLabel.pack(side="top", anchor="ne")
-        """ if (self.currentBlockchainName != "None"):
-            self.blockCountOfBlockchain = tk.Label(self.master, text="Blockcount: \n" + str(self.currentBlockchain.getHighestIndex()+1))
-            self.blockCountOfBlockchain.pack(side="top", anchor="ne") """
-    def addBackFromActiveBlockchainButton(self):
-        self.backFromActiveBlockchainButton = tk.Button(self.master, text="Back", command=self.backFromActiveBlockchain, height=3, width=12)
-        self.backFromActiveBlockchainButton.pack(side="bottom", anchor="se", expand=False)
+        self.infoFrame = tk.Frame(self.master)
+        self.infoFrame.columnconfigure(index=1, weight=1)
+        self.loggedInUserLabel = tk.Label(self.infoFrame, text="User: \n" + self.successfullyLoggedInUser)
+        self.currentBlockchainLabel = tk.Label(self.infoFrame, text="Blockchain: \n" +self.currentBlockchainName)
+        self.infoFrame.pack(side="top",fill="both")
+        self.loggedInUserLabel.grid(column=2, row=0, sticky="ne")
+        self.currentBlockchainLabel.grid(column=2, row=1, sticky="ne")
+        if(self.currentBlockchainName != "None"):
+            self.backFromActiveBlockchainButton = tk.Button(self.infoFrame, text="Back", command=self.backFromActiveBlockchain, height=3, width=14)
+            self.blockCountOfBlockchain = tk.Label(self.infoFrame, text="Blocks: \n" +str(self.currentBlockchain.getLatestBlock().block_Header.index))
+            self.backFromActiveBlockchainButton.grid(column=0,row=0, sticky="w")
+            self.blockCountOfBlockchain.grid(column=2, row=2, sticky="ne")
+        else:
+            self.logoffButton = tk.Button(self.infoFrame, text="Logoff", command=self.logOffUser, height=3, width=14)
+            self.logoffButton.grid(column=0,row=0, sticky="w")
+    def addLogin(self):
+        self.loginCreateFrame = tk.Frame(self.master,borderwidth=1, relief="solid")
+        self.usernameLabel = tk.Label(self.loginCreateFrame, text="Username:")
+        self.passwordLabel = tk.Label(self.loginCreateFrame, text="Password:")
+        self.usernameEntry = tk.Entry(self.loginCreateFrame)
+        self.passwordEntry = tk.Entry(self.loginCreateFrame, show="*")
+        self.loginButton = tk.Button(self.master, text="Login", command=self.validateLoginData, height=2,width=5)
+        self.createNewUserButton = tk.Button(self.master, text="Create", command=self.createNewUserButtonLogic, height=2,width=5)
+
+        self.usernameLabel.grid(column=0, row=0)
+        self.passwordLabel.grid(column=0, row=1)
+        self.usernameEntry.grid(column=1,row=0)
+        self.passwordEntry.grid(column=1,row=1)
+        
+        self.loginCreateFrame.grid(column=0, row=0,columnspan=2)
+        self.loginButton.grid(column=1, row=1, sticky="e")
+        self.createNewUserButton.grid(column=0, row=1, sticky="w")
+    def addImageDisplay(self, whatBlock):
+        if self.currentBlockchain.getHighestIndex() == 0:
+            return
+        self.currentIndexOfLoadedImage = whatBlock
+        self.imageFrame = tk.Frame(self.master, width=self.master.winfo_width()*0.75, height=self.master.winfo_height()*0.75)
+        self.imageFrame.pack_propagate(0)
+        self.imageFrame.pack()
+        CurrentImage = Image.open(self.currentBlockchain.getBlock(self.currentIndexOfLoadedImage).block_Data.data1).resize((int(self.master.winfo_width()*0.5),int(self.master.winfo_height()*0.5)))
+        CurrentImage.save("media/Screenshots/CurrentImage.png")
+        CurrentImage.close()
+        self.loadedImage = ImageTk.PhotoImage(file="media/Screenshots/CurrentImage.png")
+        self.loadedScreenshot = tk.Label(self.imageFrame,image=self.loadedImage)
+        self.screenshotCommand = tk.Label(self.imageFrame, text=self.currentBlockchain.getBlock(self.currentIndexOfLoadedImage).block_Data.data2)
+        self.previousScreenshotButton = tk.Button(self.imageFrame,text="Previous",command=self.previousScreenshot)
+        self.nextScreenshotButton = tk.Button(self.imageFrame,text="Next",command=self.nextScreenshot)
+        self.loadedScreenshot.grid(columnspan=3,row=0)
+        self.previousScreenshotButton.grid(column=0, row=1, sticky="w")
+        self.screenshotCommand.grid(column=1,row=1)
+        self.nextScreenshotButton.grid(column=2,row=1,sticky="e")
     #Buttons/Labels remove
     def removeBlenderAndGifButtons(self):
-        self.startBlenderButton.forget()
-        self.createGifFromScreenshotsButton.forget()     
+        self.startBackGifFrame.pack_forget()     
     def removeLoadCreateBlockchainButtons(self):
-        self.loadBlockchainButton.forget()
-        self.createNewBlockchainButton.forget()
+        self.createLoadFrame.pack_forget()
     def removeInfoPanel(self):
-        self.loggedInUserLabel.forget()
-        self.currentBlockchainLabel.forget()
-        """ if self.blockCountOfBlockchain.winfo_ismapped(self):
-            self.blockCountOfBlockchain.forget() """
-    def removeBackFromActiveBlockchainButton(self):
-        self.backFromActiveBlockchainButton.forget()
+        self.infoFrame.pack_forget()
     def removeLogin(self):
-        self.usernameLabel.pack_forget()
-        self.passwordLabel.pack_forget()
-        self.usernameEntry.pack_forget()
-        self.passwordEntry.pack_forget()
-        self.loginButton.pack_forget()
+        self.loginCreateFrame.grid_forget()
+        self.loginButton.grid_forget()
+        self.createNewUserButton.grid_forget()
+    def removeImageDisplay(self):
+        try:
+            self.imageFrame.pack_forget()
+        except AttributeError:
+            pass
+    #util
+    def checkIfGivenUserExists(self) ->bool:
+        userID = self.usernameEntry.get()
+        password = self.passwordEntry.get()
+
+        if( not userID or not password):
+            return False
+        userHashString = str(userID)+str(password)
+        userHash = hashlib.sha512(userHashString.encode()).hexdigest()
+        
+        UserDatabase = open("scripts/UserDatabase.txt")
+        UserDatabaseLines = UserDatabase.read().splitlines()
+        for entry in UserDatabaseLines:
+            if(entry==userHash):
+                UserDatabase.close()
+                return False
+        UserDatabase.close()
+        return True
+    def updateInfoPanel(self):
+        self.blockCountOfBlockchain.config(text="Blocks: \n" +str(self.currentBlockchain.getLatestBlock().block_Header.index))

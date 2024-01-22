@@ -2,6 +2,25 @@ import base64
 from PIL import Image
 import io
 
+#TODO SORT OUT
+def getImageDataBase64FromScreenshotFolder(imageName) -> bytes:
+    image = open("media/Screenshots/" + imageName, "rb")
+    imageBinarys = image.read()
+    imageBinarysEncoded = base64.b64encode(imageBinarys)
+    image.close()
+
+    return imageBinarysEncoded
+
+def writeImageDataBase64ToBlockchain(encodedImageData, blockchainName):
+    blockchain = open("blockchains/" + blockchainName, "ab")
+    blockchain.write(encodedImageData)
+    blockchain.close()
+    
+    blockchain = open("blockchains/" + blockchainName, "a")
+    blockchain.write("\n")
+    blockchain.close()
+
+
 def writeImageToBlockchain(imageName, blockchainName):
     image = open("media/Screenshots/" + imageName, "rb")
     imageBinarys = image.read()

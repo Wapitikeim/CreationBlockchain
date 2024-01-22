@@ -1,30 +1,38 @@
 import hashlib
-import io 
-import hmac
 import datetime
+import io
+from dataclasses import dataclass
 
 from dataToBlockchain import * 
 
 from pngTogif import createGifFromScreenshotsGiven
 
-class Block:
-    #MercleRoot? (permissionedBlockchain?)
-    def __init__(self, index, timestamp, data, prevHash):
-        self.index = index 
-        self.timestamp = timestamp
-        self.data = data
-        self.prevHash = prevHash
+@dataclass
+class blockHeader:
+    index: int 
+    timestamp: str 
+    hashFromPreviousBlock: str = ""
+    hashForThisBlock: str = ""
 
-        self.hash = self.calcHash()
+@dataclass
+class blockData:
+    data1: str = "Empty" #Probably the Screenshot, could be decoded blend file
+    data2: str = "Empty" #Probably command that triggerd the Screenshot, could be empty
+
+
+class Block:
+    def __init__(self, blockchainHeaderRef, blockDataRef):
+        
+        self.block_Header= blockchainHeaderRef
+        self.block_Data = blockDataRef
+        
+        #self.block_Header.hashForThisBlock = self.calcHash()
     
     def calcHash(self):
-        hashStr = str(self.index) + str(self.timestamp) + str(self.data) + str(self.prevHash)
+        hashStr = str(self.block_Header.index) + str(self.block_Header.timestamp) + str(self.block_Header.hashFromPreviousBlock) +str(self.block_Data.data1) + str(self.block_Data.data2) 
         return hashlib.sha256(hashStr.encode()).hexdigest()
     
-#Permissioned = nur der Private Key Owner darf Blöcke Hinzufügen
-#-> Was ist wenn der Ursprungsblock etwas enthält das nur der Owner entschlüsseln kann?
-#Was ist mit den Mercle Trees
-#Wo speichere ich diese Blockchain ? Bzw. wo lade Ich eine bereits erstellte?
+
 class Blockchain:
     name = ""
     allowedToModify = True
@@ -35,8 +43,9 @@ class Blockchain:
         else:
             self.owner = user
             self.name = blockChainName 
-            self.blocks = [self.loadFirstBlockFromFile(0)]
-            if (self.getLatestBlock().prevHash != user):
+            self.blocks = [self.loadBlockZeroIntoBlockchain()]
+            print("Loaded Block " + str(self.loadBlockZeroIntoBlockchain().block_Header.index) + " on " + self.name)
+            if (self.getLatestBlock().block_Header.hashFromPreviousBlock != user):
                 print("User isnt allowed to modify the " + blockChainName + " Blockchain")
                 self.allowedToModify = False
             else: 
@@ -46,92 +55,96 @@ class Blockchain:
                 else:
                     self.loadRemaingBlocks()
 
+    #New Blockchain
     def createNewBlockchain(self, user, blockChainName):
         self.owner = user
         self.name = blockChainName
         self.blocks = [self.createBlockZero()]
+        self.getLatestBlock().block_Header.hashForThisBlock = self.getLatestBlock().calcHash()
         self.writeFirstBlockToFile()
         print("Successfully created the Blockchain: " +blockChainName)
-
     def createBlockZero(self) -> Block:
-        return Block(0, datetime.datetime.now(), self.name, self.owner)
-
-    def getLatestBlock(self) -> Block:
-        return self.blocks[-1]
-
-    def addNewBlockForScreenshots(self, newBlock):
-        #Data at this point is ImageName Prev Hash isnt calculated yet UGLY
-        self.writeNormalLastBlockToFile(newBlock)
-        dataLocation = returnLineCountOfBlockchain(self.name)-1
-        newBlock.data = readImageBytesFromBlockchain(dataLocation, self.name)
-        newBlock.prevHash = self.getLatestBlock().hash
-        newBlock.hash = newBlock.calcHash()
-        writeStrToBlockchain(str(newBlock.hash), self.name)
-        self.blocks.append(newBlock)
-
-        print("Added Block " + str(newBlock.index) + " On Blockchain: " +self.name)
-
-    def addNewBlock(self, newBlock):
-        print("Loaded Block " + str(newBlock.index) + " on " + self.name)
-        self.blocks.append(newBlock)
-
-    def loadFirstBlockFromFile(self, index):
-        #Missing out of Range Error Handeling
-        indexRef = readStrFromBlockchain(index, self.name) 
-        timestampRef = readStrFromBlockchain(index+1, self.name)
-        dataRef = readStrFromBlockchain(index+2, self.name)
-        prevHashRef = readStrFromBlockchain(index+3, self.name)
-        blockRef = Block(indexRef,timestampRef, dataRef, prevHashRef)
-        return blockRef
-    
-    def loadBlockFromFile(self, index):
-        #Missing out of Range Error Handeling
-        indexRef = readStrFromBlockchain(index, self.name) 
-        timestampRef = readStrFromBlockchain(index+1, self.name)
-        dataRef = readImageBytesFromBlockchain(index+2, self.name)
-        prevHashRef = readStrFromBlockchain(index+3, self.name)
-        blockRef = Block(indexRef,timestampRef, dataRef, prevHashRef)
-        return blockRef
-
-    def loadRemaingBlocks(self):
-        lineCount = returnLineCountOfBlockchain(self.name)
-        if(lineCount>4):
-            i = 5
-            while(i <= lineCount):
-                self.addNewBlock(self.loadBlockFromFile(i-1))
-                i+=4
-        return 
-
+        return Block(blockHeader(0,datetime.datetime.now(),self.owner), blockData(self.name))
     def writeFirstBlockToFile(self):
         blockRef = self.getLatestBlock()
-        writeStrToBlockchain(str(blockRef.index), self.name)
-        writeStrToBlockchain(str(blockRef.timestamp), self.name)
-        writeStrToBlockchain(str(blockRef.data), self.name)
-        writeStrToBlockchain(str(blockRef.prevHash), self.name)
+        writeStrToBlockchain(str(blockRef.block_Header.index), self.name)
+        writeStrToBlockchain(str(blockRef.block_Header.timestamp), self.name)
+        writeStrToBlockchain(str(blockRef.block_Header.hashFromPreviousBlock), self.name)
+        writeStrToBlockchain(str(blockRef.block_Header.hashForThisBlock), self.name)
+        writeStrToBlockchain(str(blockRef.block_Data.data1), self.name)
+        writeStrToBlockchain(str(blockRef.block_Data.data2), self.name)
 
-    def writeNormalLastBlockToFile(self, newBlock):
-        writeStrToBlockchain(str(newBlock.index), self.name)
-        writeStrToBlockchain(str(newBlock.timestamp), self.name)
-        writeImageToBlockchain(newBlock.data, self.name)
-        #writeStrToBlockchain(str(blockRef.prevHash), self.name)
+    #Loading Blockchain
+    def loadBlockZeroIntoBlockchain(self):
+        #Missing out of Range Error Handeling
+        indexRef = readStrFromBlockchain(0, self.name) 
+        timestampRef = readStrFromBlockchain(1, self.name)
+        prevHashRef = readStrFromBlockchain(2, self.name)
+        thisHashRef = readStrFromBlockchain(3, self.name)
+        data1Ref = readStrFromBlockchain(4, self.name)
+        data2Ref = readStrFromBlockchain(5, self.name)
+        return Block(blockHeader(indexRef, timestampRef,prevHashRef,thisHashRef),blockData(data1Ref,data2Ref))
+    def loadRemaingBlocks(self):
+        lineCount = returnLineCountOfBlockchain(self.name)
+        if(lineCount>6):
+            i = 6
+            while(i < lineCount):
+                self.addBlockToList(self.getScreenshotBlockFromFile(i))
+                i+=6
+        return 
+    def addBlockToList(self, newBlock):
+        print("Loaded Block " + str(newBlock.block_Header.index) + " on " + self.name)
+        self.blocks.append(newBlock)
+    def getScreenshotBlockFromFile(self, index):
+        indexRef = readStrFromBlockchain(index, self.name) 
+        timestampRef = readStrFromBlockchain(index+1, self.name)
+        prevHashRef = readStrFromBlockchain(index+2, self.name)
+        thisHashRef = readStrFromBlockchain(index+3, self.name)
+        data1Ref = readImageBytesFromBlockchain(index+4, self.name)
+        data2Ref = readStrFromBlockchain(index+5, self.name)
+        return Block(blockHeader(indexRef, timestampRef,prevHashRef,thisHashRef),blockData(data1Ref,data2Ref))
+
+    #Add Block triggerd from Outside(with b64encoded Image Data)
+    def addNewBlockForScreenshots(self, newBlock):
+        newBlock.block_Header.hashFromPreviousBlock = self.getLatestBlock().block_Header.hashForThisBlock
+        newBlock.block_Header.hashForThisBlock = newBlock.calcHash()
+        self.writeScreenshotBlockToBlockchainFile(newBlock)
+        newBlock.block_Data.data1 = io.BytesIO(base64.b64decode(newBlock.block_Data.data1))
+        self.blocks.append(newBlock)
+
+        print("Added Block " + str(newBlock.block_Header.index) + " On Blockchain: " +self.name)
+    def writeScreenshotBlockToBlockchainFile(self, newBlock):
+        writeStrToBlockchain(str(newBlock.block_Header.index), self.name)
+        writeStrToBlockchain(str(newBlock.block_Header.timestamp), self.name)
+        writeStrToBlockchain(str(newBlock.block_Header.hashFromPreviousBlock), self.name)
+        writeStrToBlockchain(str(newBlock.block_Header.hashForThisBlock), self.name)
+        writeImageDataBase64ToBlockchain(newBlock.block_Data.data1, self.name)
+        writeStrToBlockchain(str(newBlock.block_Data.data2), self.name)
     
-    #misc
+    #utility
+    def getLatestBlock(self) -> Block:
+        return self.blocks[-1]
     def checkIfLineCountOfBlockchainIsRight(self) -> bool:
-        if(returnLineCountOfBlockchain(self.name)%4==0):
+        if(returnLineCountOfBlockchain(self.name)%6==0):
             return True
         return False
     def getHighestIndex(self)-> int:
-        return int(self.getLatestBlock().index)
+        return int(self.getLatestBlock().block_Header.index)
+    def getBlock(self,index) ->Block:
+        return self.blocks[index]
 
-    def loadAllImagesFromBlockchainAndCreateGif(self):
+    #TODO -> Dosent work on newly created Blockchains just Loaded ones
+    #loading Images / creating Gif
+    def loadAllImagesFromBlockchainAndCreateGif(self, name):
         screenshots = []
         
         for blockRef in self.blocks:
-            if(blockRef.index != "0"):
-                screenshots.append(blockRef.data)
+            if (blockRef.block_Header.index != "0" and blockRef != self.blocks[0]):
+                screenshots.append(blockRef.block_Data.data1)
         if not len(screenshots) == 0:
-            createGifFromScreenshotsGiven(screenshots)
+            createGifFromScreenshotsGiven(screenshots, name)
 
+    #TODO
     #of What? That the Blockchain owner is rightous?
     def checkValidity(self):
         pass

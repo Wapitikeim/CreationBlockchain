@@ -70,6 +70,6 @@ def everySecond():
     if(newCount != oldCount):
         oldCount = newCount
         bpy.ops.screen.screenshot(filepath="//C://Users//Wenz//Desktop//CreationBlockchain//out_put.png") """
-    return 0.1
+    return 0.2
 
 bpy.app.timers.register(everySecond, persistent=True)
