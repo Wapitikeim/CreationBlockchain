@@ -37,6 +37,7 @@ class MainApplication(tk.Frame):
     createGifFromScreenshotsButton = tk.Button
     backFromActiveBlockchainButton = tk.Button
     #-LoadedScreenshot
+    refreshGuiButton = tk.Button
     nextScreenshotButton = tk.Button
     previousScreenshotButton = tk.Button
     
@@ -175,16 +176,22 @@ class MainApplication(tk.Frame):
         if self.currentIndexOfLoadedImage > 0 and self.currentIndexOfLoadedImage-1 != 0:
             self.removeImageDisplay()
             self.addImageDisplay(self.currentIndexOfLoadedImage-1)
-
+    def refreshGUI(self):
+        self.removeInfoPanel()
+        self.removeImageDisplay()
+        self.addInfoPanel()
+        self.addImageDisplay(-1)
     #Buttons/Labels add
     def addBlenderAndGifButtons(self):
         self.startBackGifFrame = tk.Frame(self.master)
         self.startBackGifFrame.columnconfigure(1,weight=1)
         self.startBlenderButton = tk.Button(self.startBackGifFrame,height=3, width=14,bg="orange", text="StartBlender", command=lambda:startBlenderAndStartTakingScreenshots(self.currentBlockchain))
         self.createGifFromScreenshotsButton = tk.Button(self.startBackGifFrame, height=3, width=14, text="CreateGif", command=lambda:self.currentBlockchain.loadAllImagesFromBlockchainAndCreateGif(self.currentBlockchainName.strip(".txt")))
+        self.refreshGuiButton = tk.Button(self.startBackGifFrame, height=3, width=14, text="Refresh", command=self.refreshGUI)
         self.startBackGifFrame.pack(side="bottom",fill="both")
-        self.startBlenderButton.grid(column=2,row=0,sticky="e")
-        self.createGifFromScreenshotsButton.grid(column=0,row=0,sticky="w") 
+        self.createGifFromScreenshotsButton.grid(column=0,row=0,sticky="w")
+        self.refreshGuiButton.grid(column=2,row=0, sticky="e") 
+        self.startBlenderButton.grid(column=3,row=0,sticky="e")
     def addLoadCreateBlockchainButtons(self):
         self.createLoadFrame = tk.Frame(self.master)
         self.createLoadFrame.columnconfigure(1,weight=1)
@@ -238,7 +245,8 @@ class MainApplication(tk.Frame):
         CurrentImage.close()
         self.loadedImage = ImageTk.PhotoImage(file="media/Screenshots/CurrentImage.png")
         self.loadedScreenshot = tk.Label(self.imageFrame,image=self.loadedImage)
-        self.screenshotCommand = tk.Label(self.imageFrame, text=self.currentBlockchain.getBlock(self.currentIndexOfLoadedImage).block_Data.data2)
+        blockInfo = "Block: " + str(self.currentBlockchain.getBlock(self.currentIndexOfLoadedImage).block_Header.index) + "     Command: " + self.currentBlockchain.getBlock(self.currentIndexOfLoadedImage).block_Data.data2 + "     Timestamp: " + str(self.currentBlockchain.getBlock(self.currentIndexOfLoadedImage).block_Header.timestamp)
+        self.screenshotCommand = tk.Label(self.imageFrame, text=blockInfo)
         self.previousScreenshotButton = tk.Button(self.imageFrame,text="Previous",command=self.previousScreenshot)
         self.nextScreenshotButton = tk.Button(self.imageFrame,text="Next",command=self.nextScreenshot)
         self.loadedScreenshot.grid(columnspan=3,row=0)
