@@ -27,6 +27,7 @@ class MainApplication(tk.Frame):
     #Entrys
     usernameEntry = tk.Entry
     passwordEntry = tk.Entry
+    jumpEntry = tk.Entry
     #Buttons
     #-Login
     loginButton = tk.Button
@@ -43,6 +44,7 @@ class MainApplication(tk.Frame):
     refreshGuiButton = tk.Button
     nextScreenshotButton = tk.Button
     previousScreenshotButton = tk.Button
+    jumpToBlockButton = tk.Button
     
     #Frames
     global loginCreateFrame 
@@ -184,6 +186,15 @@ class MainApplication(tk.Frame):
         self.removeImageDisplay()
         self.addInfoPanel()
         self.addImageDisplay(-1)
+    def jumpToBlock(self):
+        try:
+            blockToJumpTo = int(self.jumpEntry.get())
+        except ValueError:
+            self.jumpEntry.delete(0, tk.END)
+            return
+        if(blockToJumpTo > 0 and blockToJumpTo <= self.currentBlockchain.getHighestIndex()):         
+            self.removeImageDisplay()
+            self.addImageDisplay(blockToJumpTo)
     #Buttons/Labels add
     def addBlenderAndGifButtons(self):
         self.startBackGifFrame = tk.Frame(self.master)
@@ -260,10 +271,14 @@ class MainApplication(tk.Frame):
         self.screenshotCommand = tk.Label(self.imageFrame, text=blockInfo)
         self.previousScreenshotButton = tk.Button(self.imageFrame,text="Previous",command=self.previousScreenshot)
         self.nextScreenshotButton = tk.Button(self.imageFrame,text="Next",command=self.nextScreenshot)
+        self.jumpToBlockButton = tk.Button(self.imageFrame, text="Jump to Block: ", command=self.jumpToBlock)
+        self.jumpEntry = tk.Entry(self.imageFrame)
         self.loadedScreenshot.grid(columnspan=3,row=0)
         self.previousScreenshotButton.grid(column=0, row=1, sticky="w")
         self.screenshotCommand.grid(column=1,row=1)
         self.nextScreenshotButton.grid(column=2,row=1,sticky="e")
+        self.jumpToBlockButton.grid(column=0, row=3,sticky="sw")
+        self.jumpEntry.grid(column=1, row=3,sticky="w")
     #Buttons/Labels remove
     def removeBlenderAndGifButtons(self):
         self.startBackGifFrame.pack_forget()     
