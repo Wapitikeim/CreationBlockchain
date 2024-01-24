@@ -80,21 +80,33 @@ class Blockchain:
 
     #Loading Blockchain
     def loadBlockZeroIntoBlockchain(self):
-        #Missing out of Range Error Handeling
-        indexRef = readStrFromBlockchain(0, self.name) 
-        timestampRef = readStrFromBlockchain(1, self.name)
-        prevHashRef = readStrFromBlockchain(2, self.name)
-        thisHashRef = readStrFromBlockchain(3, self.name)
-        data1Ref = readStrFromBlockchain(4, self.name)
-        data2Ref = readStrFromBlockchain(5, self.name)
+        blockchainToLoad = open("blockchains/"+self.name, "r")
+        blockchainToLoadSplit = blockchainToLoad.read().splitlines()
+        indexRef = blockchainToLoadSplit[0]
+        timestampRef = blockchainToLoadSplit[1]
+        prevHashRef = blockchainToLoadSplit[2]
+        thisHashRef = blockchainToLoadSplit[3]
+        data1Ref = blockchainToLoadSplit[4]
+        data2Ref = blockchainToLoadSplit[5]
+        blockchainToLoad.close()
         return Block(blockHeader(indexRef, timestampRef,prevHashRef,thisHashRef),blockData(data1Ref,data2Ref))
     def loadRemaingBlocks(self):
         lineCount = returnLineCountOfBlockchain(self.name)
         if(lineCount>6):
             i = 6
+            blockchainToLoad = open("blockchains/"+self.name, "r")
+            blockchainToLoadSplit = blockchainToLoad.read().splitlines()
             while(i < lineCount):
-                self.addBlockToList(self.getScreenshotBlockFromFile(i))
+                indexForLoadedBlock = blockchainToLoadSplit[i]
+                timestampLoadedBlock = blockchainToLoadSplit[i+1]
+                hashPrevLoadedBlock = blockchainToLoadSplit[i+2]
+                hashThisBlockLoadedBlock = blockchainToLoadSplit[i+3]
+                data1LoadedBlock = "Image missing"
+                data2LoadedBlock = blockchainToLoadSplit[i+5]
+                self.addBlockToList(Block(blockHeader(indexForLoadedBlock,timestampLoadedBlock, hashPrevLoadedBlock,hashThisBlockLoadedBlock), blockData(data1LoadedBlock, data2LoadedBlock)))
                 i+=6
+            blockchainToLoad.close()
+            self.loadAllRemaningImagesFromBlockchain()
         return 
     def addBlockToList(self, newBlock):
         print("Loaded Block " + str(newBlock.block_Header.index) + " on " + self.name)
@@ -107,7 +119,15 @@ class Blockchain:
         data1Ref = readImageBytesFromBlockchain(index+4, self.name)
         data2Ref = readStrFromBlockchain(index+5, self.name)
         return Block(blockHeader(indexRef, timestampRef,prevHashRef,thisHashRef),blockData(data1Ref,data2Ref))
-
+    def loadAllRemaningImagesFromBlockchain(self):
+        blockchainToLoad = open("blockchains/"+self.name, "rb")
+        blockchainToLoadSplit = blockchainToLoad.read().splitlines()
+        for block in self.blocks:
+            if block.block_Data.data1 == "Image missing":
+                data1Pos = (int(block.block_Header.index)*6)+4
+                block.block_Data.data1 = io.BytesIO(base64.b64decode(blockchainToLoadSplit[data1Pos]))
+                print("Loaded Image on Block " + block.block_Header.index)
+        blockchainToLoad.close()
     #Add Block triggerd from Outside(with b64encoded Image Data)
     def addNewBlockForScreenshots(self, newBlock):
         newBlock.block_Header.hashFromPreviousBlock = self.getLatestBlock().block_Header.hashForThisBlock

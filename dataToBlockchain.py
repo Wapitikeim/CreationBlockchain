@@ -128,6 +128,8 @@ def getUniqueCommandCountOfBlockchain(blockchainName, highestIndex):
     blockchainRead.close()
     return uniqueCommands
 
+def getHighestIndexFromBlockchainFile(blockchainName):
+    pass
 #Examp
 #print(readStrFromBlockchain(6, "bchain.txt"))
 #writeStrToBlockchain("Pups", "bchain.txt")
