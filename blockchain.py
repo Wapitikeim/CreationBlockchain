@@ -1,4 +1,5 @@
 import hashlib
+from timeit import default_timer as timer
 import datetime
 import io
 from dataclasses import dataclass
@@ -41,6 +42,7 @@ class Blockchain:
         if loadFlag == False:
             self.createNewBlockchain(user,blockChainName)
         else:
+            startTime = timer()
             self.owner = user
             self.name = blockChainName 
             self.blocks = [self.loadBlockZeroIntoBlockchain()]
@@ -54,6 +56,8 @@ class Blockchain:
                     self.allowedToModify = False
                 else:
                     self.loadRemaingBlocks()
+                    endTime = timer()
+                    print("It took: " + str(endTime-startTime) + " To Load" )
 
     #New Blockchain
     def createNewBlockchain(self, user, blockChainName):

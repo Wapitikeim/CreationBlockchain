@@ -71,7 +71,7 @@ def makeScreenshotsBasedOnLogChangesAndWriteThemIntoABlockchain(blockchainRef, b
             if not checkIfBlenderLogIsTheSame():
                 updateOldBlenderLogWithCurrentOne()
                 takeScreenshotOfMonitor1AndWriteThemIntoABlockchain(blockchainRef)
-            time.sleep(0.1) #somehow it just goes mayham without probably because the copy function is too slow
+            time.sleep(0.1) #somehow it just goes mayham without - probably because the copy function is too slow
         
         shutil.rmtree("media/Screenshots/")
         os.mkdir("media/Screenshots/")

@@ -1,0 +1,2 @@
+from dataToBlockchain import getMostUsedCommandOfBlockchain
+getMostUsedCommandOfBlockchain("BlenderGuruTutorialPart2.txt",123)

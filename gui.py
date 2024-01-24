@@ -19,8 +19,11 @@ class MainApplication(tk.Frame):
     loggedInUserLabel = tk.Label
     currentBlockchainLabel = tk.Label
     blockCountOfBlockchain = tk.Label 
+    blockchainSizeInMb = tk.Label
     loadedScreenshot = tk.Label
     screenshotCommand = tk.Label
+    topThreeCommands = tk.Label
+    totalOfUniqueCommands = tk.Label
     #Entrys
     usernameEntry = tk.Entry
     passwordEntry = tk.Entry
@@ -203,19 +206,27 @@ class MainApplication(tk.Frame):
     def addInfoPanel(self):
         self.infoFrame = tk.Frame(self.master)
         self.infoFrame.columnconfigure(index=1, weight=1)
-        self.loggedInUserLabel = tk.Label(self.infoFrame, text="User: \n" + self.successfullyLoggedInUser)
-        self.currentBlockchainLabel = tk.Label(self.infoFrame, text="Blockchain: \n" +self.currentBlockchainName)
+        self.loggedInUserLabel = tk.Label(self.infoFrame, text="User:     " + self.successfullyLoggedInUser)
+        self.currentBlockchainLabel = tk.Label(self.infoFrame, text="Blockchain:     " +self.currentBlockchainName)
         self.infoFrame.pack(side="top",fill="both")
         self.loggedInUserLabel.grid(column=2, row=0, sticky="ne")
         self.currentBlockchainLabel.grid(column=2, row=1, sticky="ne")
         if(self.currentBlockchainName != "None"):
             self.backFromActiveBlockchainButton = tk.Button(self.infoFrame, text="Back", command=self.backFromActiveBlockchain, height=3, width=14)
-            self.blockCountOfBlockchain = tk.Label(self.infoFrame, text="Blocks: \n" +str(self.currentBlockchain.getLatestBlock().block_Header.index))
-            self.backFromActiveBlockchainButton.grid(column=0,row=0, sticky="w")
+            self.blockCountOfBlockchain = tk.Label(self.infoFrame, text="Blocks:     " +str(self.currentBlockchain.getLatestBlock().block_Header.index))
+            self.blockchainSizeInMb = tk.Label(self.infoFrame, text="Blockchain Size:     " + str(os.path.getsize("blockchains/" + self.currentBlockchainName)>>20) + "MB")
+            self.backFromActiveBlockchainButton.grid(column=0,row=0,rowspan=4, sticky="nw")
             self.blockCountOfBlockchain.grid(column=2, row=2, sticky="ne")
+            self.blockchainSizeInMb.grid(column=2,row=3,sticky="ne")
+            topCommandsRef = getTheTop3MostUsedCommandsOfBlockchain(self.currentBlockchainName, int(self.currentBlockchain.getHighestIndex()))
+            if(topCommandsRef):
+                self.totalOfUniqueCommands = tk.Label(self.infoFrame, text="Total Of Unique Commands:     " + str(getUniqueCommandCountOfBlockchain(self.currentBlockchainName, int(self.currentBlockchain.getHighestIndex()))))
+                self.topThreeCommands = tk.Label(self.infoFrame, text="Most used Commands: \n" + str(topCommandsRef[0]).strip("()") + "\n" + str(topCommandsRef[1]).strip("()") + "\n" + str(topCommandsRef[2]).strip("()"))
+                self.totalOfUniqueCommands.grid(column=2,row=4,sticky="ne")
+                self.topThreeCommands.grid(column=2,row=5,sticky="ne")
         else:
             self.logoffButton = tk.Button(self.infoFrame, text="Logoff", command=self.logOffUser, height=3, width=14)
-            self.logoffButton.grid(column=0,row=0, sticky="w")
+            self.logoffButton.grid(column=0,row=0, rowspan=4, sticky="nw")
     def addLogin(self):
         self.loginCreateFrame = tk.Frame(self.master,borderwidth=1, relief="solid")
         self.usernameLabel = tk.Label(self.loginCreateFrame, text="Username:")

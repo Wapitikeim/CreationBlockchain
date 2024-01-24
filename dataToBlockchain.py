@@ -1,6 +1,7 @@
 import base64
 from PIL import Image
 import io
+from collections import Counter
 
 #TODO SORT OUT
 def getImageDataBase64FromScreenshotFolder(imageName) -> bytes:
@@ -67,12 +68,65 @@ def returnLineCountOfBlockchain(blockchainName) ->int:
 
 def getLineCountOFFile(fileName) ->int:
     fileRead = open(fileName, "r") 
-    fileReadStr = fileRead.read().splitlines()
-    ref = len(fileReadStr)
+    i = 0
+    for line in fileRead:
+        i+=1
+    """ fileReadStr = fileRead.read().splitlines()
+    ref = len(fileReadStr) """
     fileRead.close()
-    return ref
+    return i
 
+def getTheTop3MostUsedCommandsOfBlockchain(blockchainName, highestIndex):
+    blockchainRead = open("blockchains/"+blockchainName, "r")
+    highestIndex = highestIndex*6
+    lineNumbers = []
+    top3CommandsIncludingTheirCount = []
+    if highestIndex != 0:
+        i = 5
+        while i < highestIndex+6:
+            lineNumbers.append(i)
+            i+=6
+        entrys = []
+        for y, line in enumerate(blockchainRead):
+            if y in lineNumbers:
+                entrys.append(line.strip())
+        counts = Counter(entrys)
+        #mostFreq, mostFreqCount = counts.most_common(1)[0]
+        #print(mostFreq, mostFreqCount) # Meistgenutztes Command
+        #print(len(counts.values())) # Soviele unterschiedliche Befehle
+        #print(counts.most_common(3)) # Gibt die dritt meist auftretendenden Strings zurück
+        try:
+            top3CommandsIncludingTheirCount = counts.most_common(3)
+        except IndexError:
+            pass          
+    blockchainRead.close()
+    return top3CommandsIncludingTheirCount 
 
+def getUniqueCommandCountOfBlockchain(blockchainName, highestIndex):
+    blockchainRead = open("blockchains/"+blockchainName, "r")
+    highestIndex = highestIndex*6
+    lineNumbers = []
+    uniqueCommands = 0
+    if highestIndex != 0:
+        i = 5
+        while i < highestIndex+6:
+            lineNumbers.append(i)
+            i+=6
+        entrys = []
+        for y, line in enumerate(blockchainRead):
+            if y in lineNumbers:
+                entrys.append(line.strip())
+        counts = Counter(entrys)
+        #mostFreq, mostFreqCount = counts.most_common(1)[0]
+        #print(mostFreq, mostFreqCount) # Meistgenutztes Command
+        #print(len(counts.values())) # Soviele unterschiedliche Befehle
+        #print(counts.most_common(3)) # Gibt die dritt meist auftretendenden Strings zurück
+        try:
+            uniqueCommands = len(counts.values())
+        except IndexError:
+            pass          
+    blockchainRead.close()
+    return uniqueCommands
 
 #Examp
 #print(readStrFromBlockchain(6, "bchain.txt"))
