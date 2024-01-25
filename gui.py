@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 from tkinter import filedialog
 from tkinter import simpledialog
 import hashlib
@@ -40,6 +41,7 @@ class MainApplication(tk.Frame):
     startBlenderButton = tk.Button
     createGifFromScreenshotsButton = tk.Button
     backFromActiveBlockchainButton = tk.Button
+    checkIfBlockchainIsValidButton = tk.Button
     #-LoadedScreenshot
     refreshGuiButton = tk.Button
     nextScreenshotButton = tk.Button
@@ -195,17 +197,25 @@ class MainApplication(tk.Frame):
         if(blockToJumpTo > 0 and blockToJumpTo <= self.currentBlockchain.getHighestIndex()):         
             self.removeImageDisplay()
             self.addImageDisplay(blockToJumpTo)
+    def checkIfBlockchainIsValid(self):
+        if(self.currentBlockchain.checkValidity()):
+            messagebox.showinfo(title="Validity check",message="Blockchain is valid based on Hashes")
+        else:
+            messagebox.showerror(title="Validity check", message="Error Blockchain broke on Block: " + self.currentBlockchain.faultyBlock)
     #Buttons/Labels add
     def addBlenderAndGifButtons(self):
         self.startBackGifFrame = tk.Frame(self.master)
-        self.startBackGifFrame.columnconfigure(1,weight=1)
+        self.startBackGifFrame.columnconfigure(2,weight=1)
         self.startBlenderButton = tk.Button(self.startBackGifFrame,height=3, width=14,bg="orange", text="StartBlender", command=lambda:startBlenderAndStartTakingScreenshots(self.currentBlockchain))
         self.createGifFromScreenshotsButton = tk.Button(self.startBackGifFrame, height=3, width=14, text="CreateGif", command=lambda:self.currentBlockchain.loadAllImagesFromBlockchainAndCreateGif(self.currentBlockchainName.strip(".txt")))
+        self.checkIfBlockchainIsValidButton = tk.Button(self.startBackGifFrame, height=3, width=14, text="Check Blockchain",command=self.checkIfBlockchainIsValid)
+        #self.createGifFromScreenshotsButton = tk.Button(self.startBackGifFrame, height=3, width=14, text="CreateGif", command=self.currentBlockchain.checkValidity)
         self.refreshGuiButton = tk.Button(self.startBackGifFrame, height=3, width=14, text="Refresh", command=self.refreshGUI)
         self.startBackGifFrame.pack(side="bottom",fill="both")
         self.createGifFromScreenshotsButton.grid(column=0,row=0,sticky="w")
-        self.refreshGuiButton.grid(column=2,row=0, sticky="e") 
-        self.startBlenderButton.grid(column=3,row=0,sticky="e")
+        self.checkIfBlockchainIsValidButton.grid(column=1,row=0,sticky="w")
+        self.refreshGuiButton.grid(column=3,row=0, sticky="e") 
+        self.startBlenderButton.grid(column=4,row=0,sticky="e")
     def addLoadCreateBlockchainButtons(self):
         self.createLoadFrame = tk.Frame(self.master)
         self.createLoadFrame.columnconfigure(1,weight=1)

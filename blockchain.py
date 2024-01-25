@@ -37,6 +37,7 @@ class Block:
 class Blockchain:
     name = ""
     allowedToModify = True
+    faultyBlock = ""
     
     def __init__(self, user, blockChainName, loadFlag):
         if loadFlag == False:
@@ -157,7 +158,7 @@ class Blockchain:
     def getBlock(self,index) ->Block:
         return self.blocks[index]
 
-    #TODO -> Dosent work on newly created Blockchains just Loaded ones
+
     #loading Images / creating Gif
     def loadAllImagesFromBlockchainAndCreateGif(self, name):
         screenshots = []
@@ -168,7 +169,30 @@ class Blockchain:
         if not len(screenshots) == 0:
             createGifFromScreenshotsGiven(screenshots, name)
 
-    #TODO
-    #of What? That the Blockchain owner is rightous?
-    def checkValidity(self):
-        pass
+    #Recalc Blockchain based on Information @ the textfile
+    def checkValidity(self) -> bool:
+        result = True
+        blockchainToLoad = open("blockchains/"+self.name, "r")
+        blockchainImageLoader = open("blockchains/"+self.name, "rb")
+        blockchainImageLoaderSplit = blockchainImageLoader.read().splitlines()
+        blockchainToLoadSplit = blockchainToLoad.read().splitlines()
+        for block in self.blocks:
+            if str(block.block_Header.index) != "0":
+                ref = (int(block.block_Header.index)*6) 
+                indexRef = blockchainToLoadSplit[ref]
+                timestampRef = blockchainToLoadSplit[ref+1]
+                hashPrevRef = blockchainToLoadSplit[ref+2]
+                hashThisRef = blockchainToLoadSplit[ref+3]
+                data1Ref = blockchainImageLoaderSplit[ref+4]
+                
+                data2Ref = blockchainToLoadSplit[ref+5]
+                hashStrRef = str(indexRef) + str(timestampRef) + str(hashPrevRef) + str(data1Ref) + str(data2Ref)
+                hashThatShouldBe = hashlib.sha256(hashStrRef.encode()).hexdigest()
+                if hashThatShouldBe != hashThisRef:
+                    result = False
+                    self.faultyBlock = str(block.block_Header.index)
+                    break
+        blockchainImageLoader.close()
+        blockchainToLoad.close()
+        return result
+    
