@@ -26,8 +26,6 @@ class Block:
         
         self.block_Header= blockchainHeaderRef
         self.block_Data = blockDataRef
-        
-        #self.block_Header.hashForThisBlock = self.calcHash()
     
     def calcHash(self):
         hashStr = str(self.block_Header.index) + str(self.block_Header.timestamp) + str(self.block_Header.hashFromPreviousBlock) +str(self.block_Data.data1) + str(self.block_Data.data2) 
@@ -169,7 +167,7 @@ class Blockchain:
         if not len(screenshots) == 0:
             createGifFromScreenshotsGiven(screenshots, name)
 
-    #Recalc Blockchain based on Information @ the textfile
+    #Recalc Blockchain Hashes based on Information @ the textfile and check if theyre correct
     def checkValidity(self) -> bool:
         result = True
         blockchainToLoad = open("blockchains/"+self.name, "r")

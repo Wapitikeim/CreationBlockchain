@@ -1,3 +1,8 @@
 blockchains/*
+!blockchains/.gitkeep
 media/*
+!media/.gitkeep
+!media/gifs/.gitkeep
+!media/Screenshots/.gitkeep
 old/*
+testing.py
