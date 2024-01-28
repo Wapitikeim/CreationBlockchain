@@ -1,6 +1,7 @@
 blockchains/*
 !blockchains/.gitkeep
-media/*
+media/gifs/*
+media/Screenshots/*
 !media/.gitkeep
 !media/gifs/.gitkeep
 !media/Screenshots/.gitkeep
