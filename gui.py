@@ -47,6 +47,8 @@ class MainApplication(tk.Frame):
     nextScreenshotButton = tk.Button
     previousScreenshotButton = tk.Button
     jumpToBlockButton = tk.Button
+    jumpNext10Button = tk.Button
+    previous10Button = tk.Button
     
     #Frames
     global loginCreateFrame 
@@ -202,6 +204,27 @@ class MainApplication(tk.Frame):
             messagebox.showinfo(title="Validity check",message="Blockchain is valid based on Hashes")
         else:
             messagebox.showerror(title="Validity check", message="Error Blockchain broke on Block: " + self.currentBlockchain.faultyBlock)
+    def jumpInStepSize(self, stepsize):
+        if self.currentIndexOfLoadedImage == -1:
+            if self.currentBlockchain.getHighestIndex() > stepsize:
+                if(self.currentBlockchain.getHighestIndex() + stepsize) > 0 and (self.currentBlockchain.getHighestIndex() + stepsize) <= self.currentBlockchain.getHighestIndex():
+                    self.currentIndexOfLoadedImage = self.currentBlockchain.getHighestIndex() + stepsize
+                    self.removeImageDisplay()
+                    self.addImageDisplay(self.currentIndexOfLoadedImage)
+                    return
+                else:
+                    return
+            else:
+                return
+        if self.currentBlockchain.getHighestIndex() > stepsize:
+                if(int(self.currentIndexOfLoadedImage) + stepsize) > 0 and (int(self.currentIndexOfLoadedImage) + stepsize) <= self.currentBlockchain.getHighestIndex():
+                    self.currentIndexOfLoadedImage += stepsize
+                    self.removeImageDisplay()
+                    self.addImageDisplay(self.currentIndexOfLoadedImage)
+                else:
+                    return
+        else:
+            return
     #Buttons/Labels add
     def addBlenderAndGifButtons(self):
         self.startBackGifFrame = tk.Frame(self.master)
@@ -282,11 +305,15 @@ class MainApplication(tk.Frame):
         self.previousScreenshotButton = tk.Button(self.imageFrame,text="Previous",command=self.previousScreenshot)
         self.nextScreenshotButton = tk.Button(self.imageFrame,text="Next",command=self.nextScreenshot)
         self.jumpToBlockButton = tk.Button(self.imageFrame, text="Jump to Block: ", command=self.jumpToBlock)
+        self.jumpNext10Button = tk.Button(self.imageFrame, text="Jump -> 10", command=lambda:self.jumpInStepSize(10))
+        self.previous10Button = tk.Button(self.imageFrame, text="Jump <- 10", command=lambda:self.jumpInStepSize(-10))
         self.jumpEntry = tk.Entry(self.imageFrame)
         self.loadedScreenshot.grid(columnspan=3,row=0)
         self.previousScreenshotButton.grid(column=0, row=1, sticky="w")
         self.screenshotCommand.grid(column=1,row=1)
         self.nextScreenshotButton.grid(column=2,row=1,sticky="e")
+        self.jumpNext10Button.grid(column=2, row=4, sticky="e")
+        self.previous10Button.grid(column=0, row=4, sticky="w")
         self.jumpToBlockButton.grid(column=0, row=3,sticky="sw")
         self.jumpEntry.grid(column=1, row=3,sticky="w")
     #Buttons/Labels remove
