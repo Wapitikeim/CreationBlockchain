@@ -49,7 +49,9 @@ class MainApplication(tk.Frame):
     jumpToBlockButton = tk.Button
     jumpNext10Button = tk.Button
     previous10Button = tk.Button
-    
+    #BlockchainValidator
+    blockchainValdidatorButton = tk.Button
+
     #Frames
     global loginCreateFrame 
     global createLoadFrame
@@ -279,15 +281,18 @@ class MainApplication(tk.Frame):
         self.passwordEntry = tk.Entry(self.loginCreateFrame, show="*")
         self.loginButton = tk.Button(self.master, text="Login", command=self.validateLoginData, height=2,width=5)
         self.createNewUserButton = tk.Button(self.master, text="Create", command=self.createNewUserButtonLogic, height=2,width=5)
+        self.blockchainValdidatorButton = tk.Button(self.master,text="Validation Server",height=2,width=13)
 
         self.usernameLabel.grid(column=0, row=0)
         self.passwordLabel.grid(column=0, row=1)
         self.usernameEntry.grid(column=1,row=0)
         self.passwordEntry.grid(column=1,row=1)
         
+        
         self.loginCreateFrame.grid(column=0, row=0,columnspan=2)
         self.loginButton.grid(column=1, row=1, sticky="e")
         self.createNewUserButton.grid(column=0, row=1, sticky="w")
+        self.blockchainValdidatorButton.grid(column=3,row=0)
     def addImageDisplay(self, whatBlock):
         if self.currentBlockchain.getHighestIndex() == 0:
             return
@@ -327,6 +332,7 @@ class MainApplication(tk.Frame):
         self.loginCreateFrame.grid_forget()
         self.loginButton.grid_forget()
         self.createNewUserButton.grid_forget()
+        self.blockchainValdidatorButton.grid_forget()
     def removeImageDisplay(self):
         try:
             self.imageFrame.pack_forget()
