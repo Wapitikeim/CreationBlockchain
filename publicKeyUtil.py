@@ -5,6 +5,8 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
+import traceback
+
 def __save_file(filename, content):  
    f = open(filename, "wb")  
    f.write(content) 
@@ -49,11 +51,11 @@ def load_public_key(username):
 
 def create_signature_for_message(message, private_Key):
     signature = private_Key.sign(
-    message, 
-    padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
-        ),
+        message, 
+        padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
         hashes.SHA256()
     )
     return signature
@@ -71,13 +73,7 @@ def check_if_signature_matches_message(message, public_key, signature):
         )
         print("Signature valid")
         return True
-    except Exception as e:
-        print("signature invalid") 
+    except Exception:
+        traceback.print_exc()
+        print("Signature invalid") 
         return False
-
-
-create_Key_Pair_and_write_to_file("Bobo")
-message = b"6a268779786b0943a109addf51dd9fb9707cf12dcfdae8da52cdf7a66e38968e"
-sign = create_signature_for_message(message, load_private_key("Bobo"))
-print(sign)
-print(check_if_signature_matches_message(message, load_public_key("Bobo"),sign))

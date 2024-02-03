@@ -7,3 +7,4 @@ media/Screenshots/*
 !media/Screenshots/.gitkeep
 old/*
 testing.py
+keys/*

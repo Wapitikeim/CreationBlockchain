@@ -1,17 +1,8 @@
 import socket 
 import os 
 import hashlib
-import select
 
-def getHashOfFile(filename):
-    hash = hashlib.sha256()
-    fileInputHash = open(filename, "rb")
-    while True:
-        data = fileInputHash.read(BUFFER_SIZE)
-        if not data:
-            break 
-        hash.update(data)
-    return hash.hexdigest()
+from publicKeyUtil import * 
 
 SERVER_HOST = "0.0.0.0" # 0..0 means all local ip adresses
 SERVER_PORT = 5001
@@ -54,6 +45,14 @@ class validationServer:
                 print("Upload File option recevied")
                 client_socket.send("OK".encode())
                 self.__upload_File(client_socket)
+            case "Upload Key File":
+                print("Upload Key File option recevied")
+                client_socket.send("OK".encode())
+                self.__upload_Key_File(client_socket)
+            case "Check Blockchain Signature":
+                print("Check Blockchain Signature Optionen recevied")
+                client_socket.send("OK".encode())
+                self.__check_Blockchain_Signature(client_socket)
             case "Ping":
                 print("Server ping recevied")
                 client_socket.send("OK".encode())
@@ -96,6 +95,38 @@ class validationServer:
             client_socket.send("False".encode())
         client_socket.close()
 
+    def __upload_Key_File(self, client_socket):
+        receviedFileInfos = client_socket.recv(BUFFER_SIZE).decode()
+        filename,fileHash,fileSize = receviedFileInfos.split(SEPERATOR)
+        filename = os.path.basename(filename)
+        if not os.path.exists("keys/"):
+            os.mkdir("keys")
+        filename = "keys/" + filename
+        fileCreation = open(filename, "wb")
+        fileCreation.close()
+        while os.path.getsize(filename) < int(fileSize):
+            fileAppend = open(filename, "ab")
+            bytes_read = client_socket.recv(BUFFER_SIZE)
+            if not bytes_read:
+                break
+            fileAppend.write(bytes_read)
+            fileAppend.close()
+        hash = hashlib.sha256()
+        fileInputHash = open(filename, "rb")
+        while True:
+            data = fileInputHash.read(BUFFER_SIZE)
+            if not data:
+                break 
+            hash.update(data)
+        fileInputHash.close()
+        print("Recived Hash: " + fileHash)
+        print("Hash: " + hash.hexdigest())
+        if(fileHash == hash.hexdigest()):
+            client_socket.send("True".encode())
+        else:
+            client_socket.send("False".encode())
+        client_socket.close()
+    
     def __check_if_File_is_On_Server(self, client_socket):
         receviedFileInfos = client_socket.recv(BUFFER_SIZE).decode()
         receviedFileInfos = str(receviedFileInfos)
@@ -105,6 +136,42 @@ class validationServer:
         else:
             client_socket.send("False".encode())
         client_socket.close()
+
+    def __check_Blockchain_Signature(self, client_socket):
+        receviedSignatureInfos = client_socket.recv(BUFFER_SIZE).decode()
+        blockchainName,username = receviedSignatureInfos.split(SEPERATOR)
+        signature = client_socket.recv(BUFFER_SIZE)
+        blockchainName = os.path.basename(blockchainName)
+        if not os.path.exists(blockchainName):
+            client_socket.send(f"ERROR Blockchain {blockchainName} dosent exist on Server".encode())
+            client_socket.close()
+            return
+        message = self.__get_SHA256_Hash_from_File(blockchainName).encode()
+        if not os.path.exists("keys/" + username + "Public.pem"):
+            client_socket.send(f"ERROR Public Key for {username} dosent exist on Server".encode())
+            client_socket.close()
+            return
+        public_key = load_public_key(username)
+        solution = check_if_signature_matches_message(message, public_key, signature)
+        if solution:
+            client_socket.send("True".encode())
+        else:
+            client_socket.send(f"False. Signature doesent match the corresponding Blockchain: {blockchainName}".encode())
+        client_socket.close()
+
+
+    def __get_SHA256_Hash_from_File(self, file_Name):
+        hash = hashlib.sha256()
+        fileInputHash = open(file_Name, "rb")
+        while True:
+            data = fileInputHash.read(BUFFER_SIZE)
+            if not data:
+                break 
+            hash.update(data)
+        fileInputHash.close()
+        return hash.hexdigest()         
+        
+
 
 server = validationServer()
 server.run()

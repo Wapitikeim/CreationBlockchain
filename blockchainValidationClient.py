@@ -1,6 +1,8 @@
 import socket 
 import os 
 import hashlib
+from publicKeyUtil import *
+from cryptography.hazmat.primitives import serialization  
 
 SEPERATOR = "<SEPERATOR>" 
 BUFFER_SIZE = 4096
@@ -34,6 +36,20 @@ class blockchainClient():
             print("Something went wrong server responded with " + str(response))
             self.client.close()
 
+    def upload_key_File(self, file_Name):
+        if self.__start_Connection():
+            pass
+        else:
+            return
+        self.client.send("Upload Key File".encode())
+        response = self.client.recv(BUFFER_SIZE)
+        if response == b"OK":
+            self.__upload_File_Process(file_Name)
+            self.client.close()
+        else:
+            print("Something went wrong server responded with " + str(response))
+            self.client.close()
+    
     def __upload_File_Process(self, file_Name):
         hash = hashlib.sha256()
         filename = file_Name
@@ -104,9 +120,46 @@ class blockchainClient():
             return True
         else:
             return False 
-            
 
-clientForTesting = blockchainClient()
-#clientForTesting.upload_File("media/gifs/Yoo.gif")
-#clientForTesting.ping_Server()
-print(clientForTesting.check_if_file_exists_on_server("Test.txt"))
+    def check_If_Blockchain_is_valid_for_user(self, username, blockchainName):
+        if self.__start_Connection():
+            pass
+        else:
+            return
+        self.client.send("Check Blockchain Signature".encode())
+        response = self.client.recv(BUFFER_SIZE)
+        if response == b"OK":
+            self.__check_If_Blockchain_is_valid_for_user_process(username, blockchainName)
+            self.client.close()
+        else:
+            print("Something went wrong server responded with " + str(response))
+            self.client.close()          
+
+    def __check_If_Blockchain_is_valid_for_user_process(self, username, blockchainName):
+        blockchainHash = hashlib.sha256()
+        fileInputHash = open(blockchainName, "rb")
+        while True:
+            data = fileInputHash.read(BUFFER_SIZE)
+            if not data:
+                break 
+            blockchainHash.update(data)
+        fileInputHash.close()
+        message = blockchainHash.hexdigest().encode()
+        signature = create_signature_for_message(message, load_private_key(username))
+        self.client.send(f"{blockchainName}{SEPERATOR}{username}".encode())
+        self.client.send(signature)
+        answer = self.client.recv(BUFFER_SIZE)
+        if answer == b"True":
+            print(f"Signature of {blockchainName} from User {username} valid")
+            return True
+        else:
+            print(answer)
+            return False
+
+#clientForTesting = blockchainClient()
+#create_Key_Pair_and_write_to_file("Alice")
+#clientForTesting.upload_File("blockchains/Test.txt")
+#clientForTesting.upload_key_File("keys/AlicePublic.pem")
+#clientForTesting.check_If_Blockchain_is_valid_for_user("Alice", "blockchains/BlenderGuruDonut.txt")
+
+#print(clientForTesting.check_if_file_exists_on_server("Test.txt"))
