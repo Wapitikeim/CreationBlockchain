@@ -5,6 +5,10 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
+import hashlib
+
+import os
+
 import traceback
 
 def __save_file(filename, content):  
@@ -49,6 +53,20 @@ def load_public_key(username):
         )
     return public_key 
 
+def write_Signature_To_File(message, username, blockchain_Name):
+    if not ( os.path.exists('keys/' + username + "Private.pem") and os.path.exists('keys/' + username + "Public.pem") ):
+        print("KeyPair Not Found, Generating")
+        create_Key_Pair_and_write_to_file(username)
+    signature = create_signature_for_message(message, load_private_key(username))
+    writer = open("blockchains/" + blockchain_Name[:-4] + username + ".cert", "wb")
+    writer.write(signature)
+    writer.close()
+
+def load_Signature_From_File(signature_Name):
+    reader = open(signature_Name, "rb")
+    signature = reader.read()
+    return signature
+
 def create_signature_for_message(message, private_Key):
     signature = private_Key.sign(
         message, 
@@ -77,3 +95,20 @@ def check_if_signature_matches_message(message, public_key, signature):
         traceback.print_exc()
         print("Signature invalid") 
         return False
+
+def get_SHA256_Hash_from_File(file_Name):
+        hash = hashlib.sha256()
+        fileInputHash = open(file_Name, "rb")
+        while True:
+            data = fileInputHash.read(4096)
+            if not data:
+                break 
+            hash.update(data)
+        fileInputHash.close()
+        return hash.hexdigest()
+
+
+#message = get_SHA256_Hash_from_File("blockchains/Winterexpo.txt").encode()
+#write_Signature_To_File(message, "Alice", "BlenderGuruDonut")
+#signature = load_Signature_From_File("blockchains/WinterexpoWinterexpo.cert")
+#print(check_if_signature_matches_message(message,load_public_key("Winterexpo"), signature))

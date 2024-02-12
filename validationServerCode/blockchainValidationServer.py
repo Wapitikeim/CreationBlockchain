@@ -140,7 +140,8 @@ class validationServer:
     def __check_Blockchain_Signature(self, client_socket):
         receviedSignatureInfos = client_socket.recv(BUFFER_SIZE).decode()
         blockchainName,username = receviedSignatureInfos.split(SEPERATOR)
-        signature = client_socket.recv(BUFFER_SIZE)
+        signatureName = client_socket.recv(BUFFER_SIZE).decode()
+        signatureName = os.path.basename(signatureName)
         blockchainName = os.path.basename(blockchainName)
         if not os.path.exists(blockchainName):
             client_socket.send(f"ERROR Blockchain {blockchainName} dosent exist on Server".encode())
@@ -152,13 +153,19 @@ class validationServer:
             client_socket.close()
             return
         public_key = load_public_key(username)
+        print(signatureName)
+        try:
+            signature = load_Signature_From_File(signatureName)
+        except Exception:
+            client_socket.send(f"False. Signature dosent match {signatureName}".encode())
+            client_socket.close()
+            return
         solution = check_if_signature_matches_message(message, public_key, signature)
         if solution:
             client_socket.send("True".encode())
         else:
             client_socket.send(f"False. Signature doesent match the corresponding Blockchain: {blockchainName}".encode())
         client_socket.close()
-
 
     def __get_SHA256_Hash_from_File(self, file_Name):
         hash = hashlib.sha256()
@@ -171,7 +178,5 @@ class validationServer:
         fileInputHash.close()
         return hash.hexdigest()         
         
-
-
 server = validationServer()
 server.run()

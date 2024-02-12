@@ -129,11 +129,13 @@ class blockchainClient():
         self.client.send("Check Blockchain Signature".encode())
         response = self.client.recv(BUFFER_SIZE)
         if response == b"OK":
-            self.__check_If_Blockchain_is_valid_for_user_process(username, blockchainName)
+            answer = str(self.__check_If_Blockchain_is_valid_for_user_process(username, blockchainName))
             self.client.close()
+            return answer
         else:
             print("Something went wrong server responded with " + str(response))
-            self.client.close()          
+            self.client.close()
+            return str(response)    
 
     def __check_If_Blockchain_is_valid_for_user_process(self, username, blockchainName):
         blockchainHash = hashlib.sha256()
@@ -144,17 +146,18 @@ class blockchainClient():
                 break 
             blockchainHash.update(data)
         fileInputHash.close()
-        message = blockchainHash.hexdigest().encode()
-        signature = create_signature_for_message(message, load_private_key(username))
+        #message = blockchainHash.hexdigest().encode()
+        #signature = create_signature_for_message(message, load_private_key(username))
+        signature = blockchainName[:-4] + username + ".cert"
         self.client.send(f"{blockchainName}{SEPERATOR}{username}".encode())
-        self.client.send(signature)
+        self.client.send(signature.encode())
         answer = self.client.recv(BUFFER_SIZE)
         if answer == b"True":
             print(f"Signature of {blockchainName} from User {username} valid")
-            return True
+            return answer
         else:
             print(answer)
-            return False
+            return answer
 
 #clientForTesting = blockchainClient()
 #create_Key_Pair_and_write_to_file("Alice")
