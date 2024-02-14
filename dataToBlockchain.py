@@ -42,6 +42,15 @@ def writeStrToBlockchain(strToAdd, blockchainName):
     blockchain.write("\n")
     blockchain.close()
 
+def writeBytesToBlockchain(bytesToAdd, blockchainName):
+    blockchain = open("blockchains/" + blockchainName, "ab")
+    encodedBytes = base64.b64encode(bytesToAdd)
+    blockchain.write(encodedBytes)
+    blockchain.close()
+    blockchain = open("blockchains/" + blockchainName, "a")
+    blockchain.write("\n")
+    blockchain.close()
+
 def readImageBytesFromBlockchain(index, blockchainName) ->bytes:
     blockchainRead = open("blockchains/"+blockchainName, "rb")
     blockchainBytes = blockchainRead.read().splitlines()
@@ -78,14 +87,14 @@ def getLineCountOFFile(fileName) ->int:
 
 def getTheTop3MostUsedCommandsOfBlockchain(blockchainName, highestIndex):
     blockchainRead = open("blockchains/"+blockchainName, "r")
-    highestIndex = highestIndex*6
+    highestIndex = highestIndex*7
     lineNumbers = []
     top3CommandsIncludingTheirCount = []
     if highestIndex != 0:
-        i = 5
-        while i < highestIndex+6:
+        i = 6
+        while i < highestIndex+7:
             lineNumbers.append(i)
-            i+=6
+            i+=7
         entrys = []
         for y, line in enumerate(blockchainRead):
             if y in lineNumbers:
@@ -104,14 +113,14 @@ def getTheTop3MostUsedCommandsOfBlockchain(blockchainName, highestIndex):
 
 def getUniqueCommandCountOfBlockchain(blockchainName, highestIndex):
     blockchainRead = open("blockchains/"+blockchainName, "r")
-    highestIndex = highestIndex*6
+    highestIndex = highestIndex*7
     lineNumbers = []
     uniqueCommands = 0
     if highestIndex != 0:
-        i = 5
-        while i < highestIndex+6:
+        i = 6
+        while i < highestIndex+7:
             lineNumbers.append(i)
-            i+=6
+            i+=7
         entrys = []
         for y, line in enumerate(blockchainRead):
             if y in lineNumbers:

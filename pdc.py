@@ -38,8 +38,7 @@ def takeScreenshotOfMonitor1AndWriteThemIntoABlockchain(blockchainRef):
             shutil.move(newNameWithTimestamp, "media/Screenshots/"+newNameWithTimestamp)
             #BlockchainAddSuperUglyHere Data = name -> will get changed
             #writeCurrentUndoCommandIntoSpecialList(blockchainRef)
-            newIndex = blockchainRef.getHighestIndex()
-            newIndex +=1
+            newIndex = blockchainRef.getHighestIndex() +1
             imageData = getImageDataBase64FromScreenshotFolder(newNameWithTimestamp)
             blockchainRef.addNewBlockForScreenshots(Block(blockHeader(newIndex, newNameWithTimestamp.strip(".png")),blockData(imageData,getCurrentNameOfCommandFromUndoLogFile())))
             """ else:

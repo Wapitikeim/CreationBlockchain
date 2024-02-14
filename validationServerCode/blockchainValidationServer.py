@@ -4,6 +4,8 @@ import hashlib
 
 from publicKeyUtil import * 
 
+import glob
+
 SERVER_HOST = "0.0.0.0" # 0..0 means all local ip adresses
 SERVER_PORT = 5001
 SERVER_MAX_CONNECTIONS = 5
@@ -61,10 +63,34 @@ class validationServer:
                 print("FileCheck option recevied")
                 client_socket.send("OK".encode())
                 self.__check_if_File_is_On_Server(client_socket)
+            case "Get Public Key":
+                print("Get Public Key option recevied")
+                client_socket.send("OK".encode())
+                self.__get_Publiy_Key(client_socket)
             case _:
                 print("Error no valid Option")
                 client_socket.send("ERROR".encode())
                 client_socket.close()
+    
+    def __get_Publiy_Key(self,client_socket):
+        receviedHash = client_socket.recv(BUFFER_SIZE).decode()
+        #print(receviedHash)
+        for publicKeys in glob.iglob('keys/*.pem'):
+            #print(f"{publicKeys} Hash = {get_SHA512_Hash_from_File(publicKeys)}")
+            if get_SHA512_Hash_from_File(publicKeys) == receviedHash:
+                fileSize = os.path.getsize(publicKeys)
+                client_socket.send(f"{os.path.basename(publicKeys)}{SEPERATOR}{fileSize}".encode())
+                with open(publicKeys, "rb") as f:
+                    while True:
+                        bytes_read = f.read(BUFFER_SIZE)
+                        if not bytes_read:
+                            break 
+                        client_socket.send(bytes_read)
+                client_socket.close()
+                return
+        client_socket.send("Error".encode())
+        client_socket.close()
+
 
     def __upload_File(self, client_socket):
         receviedFileInfos = client_socket.recv(BUFFER_SIZE).decode()
@@ -177,6 +203,7 @@ class validationServer:
             hash.update(data)
         fileInputHash.close()
         return hash.hexdigest()         
-        
+
+
 server = validationServer()
 server.run()

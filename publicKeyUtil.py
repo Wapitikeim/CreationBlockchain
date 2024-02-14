@@ -53,6 +53,13 @@ def load_public_key(username):
         )
     return public_key 
 
+def load_public_key_with_filepath(filepath):
+    with open(filepath, "rb") as key_file:
+        public_key = serialization.load_pem_public_key(
+            key_file.read()
+        )
+    return public_key
+
 def write_Signature_To_File(message, username, blockchain_Name):
     if not ( os.path.exists('keys/' + username + "Private.pem") and os.path.exists('keys/' + username + "Public.pem") ):
         print("KeyPair Not Found, Generating")
@@ -89,7 +96,7 @@ def check_if_signature_matches_message(message, public_key, signature):
                 ),
             hashes.SHA256()
         )
-        print("Signature valid")
+        #print("Signature valid")
         return True
     except Exception:
         traceback.print_exc()
@@ -107,8 +114,50 @@ def get_SHA256_Hash_from_File(file_Name):
         fileInputHash.close()
         return hash.hexdigest()
 
+def get_SHA512_Hash_from_File(file_Name):
+        hash = hashlib.sha512()
+        fileInputHash = open(file_Name, "rb")
+        while True:
+            data = fileInputHash.read(4096)
+            if not data:
+                break 
+            hash.update(data)
+        fileInputHash.close()
+        return hash.hexdigest()
+
+def encrypt_Message_With_Public_key(message, public_key):
+    ciphertext = public_key.encrypt(
+        message,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return ciphertext
+
+def decrypt_Message_With_Private_key(cipher, private_key):
+    message = private_key.decrypt(
+        cipher,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return message
+
+
+
+#test = get_SHA512_Hash_from_File("keys/AlicePublic.pem")
+#print(test)
+
 
 #message = get_SHA256_Hash_from_File("blockchains/Winterexpo.txt").encode()
+#print(message)
+#test = encrypt_Message_With_Public_key(message, load_public_key("Winterexpo"))
+#test2 = decrypt_Message_With_Private_key(test, load_private_key("Winterexpo"))
+#print(test2.decode())
 #write_Signature_To_File(message, "Alice", "BlenderGuruDonut")
 #signature = load_Signature_From_File("blockchains/WinterexpoWinterexpo.cert")
 #print(check_if_signature_matches_message(message,load_public_key("Winterexpo"), signature))

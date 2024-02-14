@@ -19,7 +19,6 @@ class blockchainClient():
             return True
         except Exception as e:
             print("Server unreachable "+ str(HOST) + " " + str(PORT))
-            print(e)
             return False 
     
     def upload_File(self, file_Name):
@@ -110,8 +109,8 @@ class blockchainClient():
             return answer
         else:
             print("Something went wrong server responded with " + str(response))
-            return False
             self.client.close()
+            return False
 
     def __file_check_process(self, file_Name):
         self.client.send(file_Name.encode())
@@ -159,6 +158,39 @@ class blockchainClient():
             print(answer)
             return answer
 
+    def get_Public_Key_From_Server(self, hash):
+        if self.__start_Connection():
+            pass
+        else:
+            return
+        self.client.send("Get Public Key".encode())
+        response = self.client.recv(BUFFER_SIZE)
+        if response == b"OK":
+            answer = self.__get_Public_Key_From_Server_Process(hash)
+            self.client.close()
+            return answer
+        else:
+            print("Something went wrong server responded with " + str(response))
+            self.client.close()
+            return False 
+    
+    def __get_Public_Key_From_Server_Process(self, hash):
+        self.client.send(hash.encode())
+        infos = self.client.recv(BUFFER_SIZE).decode()
+        try:
+            publicKeyName, fileSize = infos.split(SEPERATOR)
+        except ValueError:
+            return "Error"
+        fileCreation = open("tmp/" +publicKeyName, "wb")
+        fileCreation.close()
+        while os.path.getsize("tmp/"+publicKeyName) < int(fileSize):
+            fileAppend = open("tmp/"+publicKeyName, "ab")
+            bytes_read = self.client.recv(BUFFER_SIZE)
+            if not bytes_read:
+                break
+            fileAppend.write(bytes_read)
+            fileAppend.close()
+        return "tmp/"+publicKeyName
 #clientForTesting = blockchainClient()
 #create_Key_Pair_and_write_to_file("Alice")
 #clientForTesting.upload_File("blockchains/Test.txt")

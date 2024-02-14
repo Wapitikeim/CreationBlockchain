@@ -6,6 +6,7 @@ import hashlib
 from PIL import ImageTk
 import os
 from base64 import b64decode
+import shutil
 
 from publicKeyUtil import write_Signature_To_File
 from publicKeyUtil import get_SHA256_Hash_from_File
@@ -55,17 +56,20 @@ class MainApplication(tk.Frame):
     jumpToBlockButton = tk.Button
     jumpNext10Button = tk.Button
     previous10Button = tk.Button
+    
     #BlockchainValidator
     blockchainValdidatorButton = tk.Button
     backFromBlockchainValidatorButton = tk.Button
-    uploadBlockchainToServerButton = tk.Button
+    blockcainToVerifyButton = tk.Button
     uploadCertificateToServerButton = tk.Button
     pingServerButton = tk.Button
-    checkBlockchainWithCertificateOnServerButton = tk.Button
+    verifyBlockchainWithPublicKeyButton = tk.Button
     uploadedBlockchainLabel = tk.Label
     uploadedCertificateLabel = tk.Label
     userWhoSignedTheCertificateLabel  = tk.Label
     userWhoSignedTheCertificateEntry  = tk.Entry
+    loadedPublicKeyPath = "None"
+    blockchainToVerifyPath = "None"
 
     #Frames
     global loginCreateFrame 
@@ -126,7 +130,7 @@ class MainApplication(tk.Frame):
         if not filePath:
             return
         self.currentBlockchainName = os.path.basename(filePath)
-        self.currentBlockchain = Blockchain(self.successfullyLoggedInUserHash, self.currentBlockchainName, True)
+        self.currentBlockchain = Blockchain(self.successfullyLoggedInUser, self.currentBlockchainName, True)
         if(self.currentBlockchain.allowedToModify == False):
             self.currentBlockchainName = "None"
             self.currentBlockchain = ""
@@ -144,7 +148,7 @@ class MainApplication(tk.Frame):
         if newBlockchainName[-4:] != ".txt":
             newBlockchainName = newBlockchainName + ".txt"
         self.currentBlockchainName = newBlockchainName
-        self.currentBlockchain = Blockchain(self.successfullyLoggedInUserHash, self.currentBlockchainName, False)
+        self.currentBlockchain = Blockchain(self.successfullyLoggedInUser, self.currentBlockchainName, False)
 
         self.removeInfoPanel()
         self.addInfoPanel()
@@ -243,7 +247,73 @@ class MainApplication(tk.Frame):
                     return
         else:
             return
-    def uploadBlockchainToServer(self):
+    #Validation Server
+    def pingServer(self):
+        client = blockchainClient()
+        if client.ping_Server():
+            messagebox.showinfo(message="Server active")
+        else:
+            messagebox.showerror(message="Can't reach Server")
+    def uploadPublicKeyToServer(self):
+        client = blockchainClient()
+        if not client.ping_Server():
+            messagebox.showerror(message="Cannot reach Server")
+            return
+        if not client.check_if_file_exists_on_server('keys/'+self.successfullyLoggedInUser+'Public.pem'):
+            client.upload_key_File('keys/'+self.successfullyLoggedInUser+'Public.pem')
+            messagebox.showinfo(message="Public key succsessfully uploaded")
+        else:
+            messagebox.showinfo(message="Public key already uploaded")
+    def getPublicKeyFromServer(self):
+        filePath = filedialog.askopenfilename()
+        if not filePath:
+            return
+        reader = open(filePath, "r")
+        lines = reader.read().splitlines()
+        hash = lines[2]
+        reader.close()
+        client = blockchainClient()
+        if not client.ping_Server():
+            messagebox.showerror(message="Cannot reach Server")
+            return
+        answer = client.get_Public_Key_From_Server(hash)
+        if answer == "Error":
+            messagebox.showerror(message=f"Error couldnt find corresponding Public Key to {os.path.basename(filePath)} on Server")
+        else:
+            self.loadedPublicKeyPath = answer
+            self.blockchainToVerifyPath = filePath
+            messagebox.showinfo(message=f"Successfully loaded Public key to corresponding Blockchain {os.path.basename(filePath)} from Server")
+    def validateBlockchainWithPublicKey(self):
+        if self.loadedPublicKeyPath == "None":
+            messagebox.showinfo(message="Please ask the server for a Public Key first")
+        publicKey = load_public_key_with_filepath(self.loadedPublicKeyPath)
+        blockchainToLoad = open(self.blockchainToVerifyPath, "r")
+        lines = blockchainToLoad.read().splitlines()
+        max = len(lines)-1
+        x = 2
+        y = 3
+        while(x < max):
+            if not check_if_signature_matches_message(lines[2].encode(),publicKey,base64.b64decode(lines[3])):
+                self.loadedPublicKeyPath = "None"
+                messagebox.showerror(message=f"The Blockchain {os.path.basename(self.blockchainToVerifyPath)} is faulty beginning at block {lines[x-2]}")
+                self.blockchainToVerifyPath = "None"
+                blockchainToLoad.close()
+                shutil.rmtree("tmp/")
+                os.mkdir("tmp/")
+                return
+            print(f"Signature for Block {lines[x-2]} valid")
+            x +=7
+            y +=7
+        self.loadedPublicKeyPath = "None"
+        messagebox.showinfo(message=f"Success! The Blockchain {os.path.basename(self.blockchainToVerifyPath)} is valid")
+        self.blockchainToVerifyPath = "None"
+        blockchainToLoad.close()
+        shutil.rmtree("tmp/")
+        os.mkdir("tmp/")
+        
+        blockchainToLoad.close()
+    
+    """ def uploadBlockchainToServer(self):
         filePath = filedialog.askopenfilename()
         if not filePath:
             return
@@ -270,13 +340,7 @@ class MainApplication(tk.Frame):
             client.upload_File(filePath)
         except Exception:
             return 
-        self.uploadedCertificateLabel.config(text=fileName) 
-    def pingServer(self):
-        client = blockchainClient()
-        if client.ping_Server():
-            messagebox.showinfo(message="Server active")
-        else:
-            messagebox.showerror(message="Can't reach Server")
+        self.uploadedCertificateLabel.config(text=fileName)  
     def uploadKeyFileFromCurrentUser(self):
         client = blockchainClient()
         if client.check_if_file_exists_on_server('keys/' + self.successfullyLoggedInUser +'Public.pem'):
@@ -300,7 +364,7 @@ class MainApplication(tk.Frame):
             self.uploadedBlockchainLabel['text'] = "None"
         else:
             messagebox.showinfo(message=response)
-
+    """
     #Buttons/Labels add
     def addBlenderAndGifButtons(self):
         self.startBackGifFrame = tk.Frame(self.master)
@@ -308,7 +372,7 @@ class MainApplication(tk.Frame):
         self.startBlenderButton = tk.Button(self.startBackGifFrame,height=3, width=14,bg="orange", text="StartBlender", command=lambda:startBlenderAndStartTakingScreenshots(self.currentBlockchain))
         self.createGifFromScreenshotsButton = tk.Button(self.startBackGifFrame, height=3, width=14, text="CreateGif", command=lambda:self.currentBlockchain.loadAllImagesFromBlockchainAndCreateGif(self.currentBlockchainName.strip(".txt")))
         self.checkIfBlockchainIsValidButton = tk.Button(self.startBackGifFrame, height=3, width=14, text="Check Blockchain",command=self.checkIfBlockchainIsValid)
-        self.createSignatureForBlockchainButton = tk.Button(self.startBackGifFrame, height=3, width=14, text="Create Signature", command=lambda:[write_Signature_To_File(get_SHA256_Hash_from_File('blockchains/' + self.currentBlockchainName).encode(),self.successfullyLoggedInUser, self.currentBlockchainName), self.uploadKeyFileFromCurrentUser()])
+        self.createSignatureForBlockchainButton = tk.Button(self.startBackGifFrame, height=3, width=14, text="Register Key", command=self.uploadPublicKeyToServer)
         self.refreshGuiButton = tk.Button(self.startBackGifFrame, height=3, width=14, text="Refresh", command=self.refreshGUI)
         self.startBackGifFrame.pack(side="bottom",fill="both")
         self.createGifFromScreenshotsButton.grid(column=0,row=1,sticky="w")
@@ -400,23 +464,23 @@ class MainApplication(tk.Frame):
         #self.validationServerFrame.columnconfigure(1, weight=1)
         self.validationServerFrame.rowconfigure(2, weight=1)
         self.backFromBlockchainValidatorButton = tk.Button(self.validationServerFrame,text="Back", command=self.removeValidationServer)
-        self.uploadBlockchainToServerButton = tk.Button(self.validationServerFrame, text="Upload Blockchain", command=self.uploadBlockchainToServer)
-        self.uploadCertificateToServerButton = tk.Button(self.validationServerFrame, text="Upload Certificate", command=self.uploadCertificateToServer)
+        self.blockcainToVerifyButton = tk.Button(self.validationServerFrame, text="Enter Blockchain To verify", command=self.getPublicKeyFromServer)
+        #self.uploadCertificateToServerButton = tk.Button(self.validationServerFrame, text="Upload Certificate", command=self.uploadCertificateToServer)
         self.pingServerButton = tk.Button(self.validationServerFrame, text="Ping Server", command=self.pingServer)
-        self.uploadedBlockchainLabel = tk.Label(self.validationServerFrame, text="None")
-        self.uploadedCertificateLabel = tk.Label(self.validationServerFrame, text="None")
-        self.userWhoSignedTheCertificateLabel = tk.Label(self.validationServerFrame, text="Enter User")
-        self.userWhoSignedTheCertificateEntry = tk.Entry(self.validationServerFrame)
-        self.checkBlockchainWithCertificateOnServerButton = tk.Button(self.validationServerFrame, text="Validate", command=self.validateBlockchainWithCertificate)
+        #self.uploadedBlockchainLabel = tk.Label(self.validationServerFrame, text="None")
+        #self.uploadedCertificateLabel = tk.Label(self.validationServerFrame, text="None")
+        #self.userWhoSignedTheCertificateLabel = tk.Label(self.validationServerFrame, text="Enter User")
+        #self.userWhoSignedTheCertificateEntry = tk.Entry(self.validationServerFrame)
+        self.verifyBlockchainWithPublicKeyButton = tk.Button(self.validationServerFrame, text="Validate", command=self.validateBlockchainWithPublicKey)
         self.validationServerFrame.pack(side="left",fill="both")
-        self.uploadBlockchainToServerButton.grid(column=0, row=0)
-        self.uploadedBlockchainLabel.grid(column=1, row=0)
-        self.uploadCertificateToServerButton.grid(column=0, row=1)
-        self.uploadedCertificateLabel.grid(column=1, row=1)
-        self.userWhoSignedTheCertificateLabel.grid(column=0, row=2)
-        self.userWhoSignedTheCertificateEntry.grid(column=1, row=2)
+        self.blockcainToVerifyButton.grid(column=0, row=0)
+        #self.uploadedBlockchainLabel.grid(column=1, row=0)
+        #self.uploadCertificateToServerButton.grid(column=0, row=1)
+        #self.uploadedCertificateLabel.grid(column=1, row=1)
+        #self.userWhoSignedTheCertificateLabel.grid(column=0, row=2)
+        #self.userWhoSignedTheCertificateEntry.grid(column=1, row=2)
         self.backFromBlockchainValidatorButton.grid(column=0, row=4, sticky="w")
-        self.checkBlockchainWithCertificateOnServerButton.grid(column=2, row=4, sticky="e")
+        self.verifyBlockchainWithPublicKeyButton.grid(column=2, row=4, sticky="e")
         self.pingServerButton.grid(column=1, row=4, sticky="e")
 
     #Buttons/Labels remove
