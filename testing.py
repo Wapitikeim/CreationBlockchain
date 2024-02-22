@@ -5,6 +5,13 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
+import base64
+
+import os
+import pathlib
+
+import fileinput
+
 def __save_file(filename, content):  
    f = open(filename, "wb")  
    f.write(content) 
@@ -76,8 +83,21 @@ def check_if_signature_matches_message(message, public_key, signature):
         return False
 
 
-create_Key_Pair_and_write_to_file("Bobo")
+""" create_Key_Pair_and_write_to_file("Bobo")
 message = b"6a268779786b0943a109addf51dd9fb9707cf12dcfdae8da52cdf7a66e38968e"
-sign = create_signature_for_message(message, load_private_key("Bobo"))
-print(sign)
-print(check_if_signature_matches_message(message, load_public_key("Bobo"),sign))
+sign = create_signature_for_message(message, load_private_key("Bobo")) """
+#print(sign)
+
+""" blockchainToLoad = open("blockchains/TestForValidation.txt", "r")
+lines = blockchainToLoad.read().splitlines()
+
+print(check_if_signature_matches_message(lines[9].encode(), load_public_key("Alice"),base64.b64decode(lines[10])))
+print(lines[9].encode())
+print(base64.b64decode(lines[10])) """
+
+fin = open("scripts/blenderControlRef.py")
+fout = open("scripts/blenderControl.py", "w")
+for line in fin:
+    fout.write(line.replace("INSERTPATH",os.path.abspath(os.getcwd()).replace("\\", "/")))
+fin.close()
+fout.close()

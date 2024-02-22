@@ -92,7 +92,9 @@ class MainApplication(tk.Frame):
         tk.Frame.__init__(self, self.master)
         self.configure_gui()
         self.addLogin()
-    
+        if not os.access("scripts/blenderStart.bat", os.R_OK):
+            self.checkOnBlenderStartBat()
+         
     #Setup
     def configure_gui(self):
         self.master.title("Creation Blockchain")
@@ -103,6 +105,30 @@ class MainApplication(tk.Frame):
         self.addLoadCreateBlockchainButtons()
     def start(self):
         self.master.mainloop()
+    def checkOnBlenderStartBat(self):
+        messagebox.showinfo(title="Blender Path", message="Please set the Folder where your Blender installation is located. \n Normally found under \"C:/ProgrammFiles/BlenderFoundation\"")
+        filePath = filedialog.askdirectory()
+        if not filePath:
+            raise Exception("Please enter a valid FilePath!") 
+        if not os.access(f"{filePath}/blender.exe", os.R_OK):
+            raise Exception("This cant be the right folder couldnt find blender.exe")
+        batCreator = open("scripts/blenderStart.bat", "w")
+        batCreator.write("@echo off \n")
+        if filePath[0] != "C":
+            batCreator.write(f"{filePath[0]}\n")
+        batCreator.write(f"cd {filePath}/ \n")
+        workingDic = os.path.abspath(os.getcwd())
+        batCreator.write(f"blender --log \"*operator*\" --log-file {workingDic}/scripts/Log.txt --log-level 1 --python-use-system-env --python {workingDic}/scripts/blenderControl.py \n")
+        batCreator.close()
+
+        #Adjust blenderControl.py
+        fin = open("scripts/blenderControlRef.py")
+        fout = open("scripts/blenderControl.py", "w")
+        for line in fin:
+            fout.write(line.replace("INSERTPATH",os.path.abspath(os.getcwd()).replace("\\", "/")))
+        fin.close()
+        fout.close()
+
     #Button Logic
     def validateLoginData(self):
         userID = self.usernameEntry.get()
@@ -113,7 +139,10 @@ class MainApplication(tk.Frame):
 
         userHashString = str(userID)+str(password)
         userHash = hashlib.sha512(userHashString.encode()).hexdigest()
-        
+        if not os.access("scripts/UserDatabase.txt", os.R_OK):
+            print("Userbase not found - creating")
+            createUserDB = open("scripts/UserDatabase.txt", "w")
+            createUserDB.close()
         UserDatabase = open("scripts/UserDatabase.txt")
         UserDatabaseLines = UserDatabase.read().splitlines()
         for entry in UserDatabaseLines:
@@ -126,7 +155,7 @@ class MainApplication(tk.Frame):
                 return
         UserDatabase.close()   
     def askForBlockchainFile(self):
-        filePath = filedialog.askopenfilename()
+        filePath = filedialog.askopenfilename(initialdir=f"{os.path.abspath(os.getcwd())}/blockchains/")
         if not filePath:
             return
         self.currentBlockchainName = os.path.basename(filePath)
@@ -293,7 +322,7 @@ class MainApplication(tk.Frame):
         x = 2
         y = 3
         while(x < max):
-            if not check_if_signature_matches_message(lines[2].encode(),publicKey,base64.b64decode(lines[3])):
+            if not check_if_signature_matches_message(lines[x].encode(),publicKey,base64.b64decode(lines[y])):
                 self.loadedPublicKeyPath = "None"
                 messagebox.showerror(message=f"The Blockchain {os.path.basename(self.blockchainToVerifyPath)} is faulty beginning at block {lines[x-2]}")
                 self.blockchainToVerifyPath = "None"
@@ -313,58 +342,6 @@ class MainApplication(tk.Frame):
         
         blockchainToLoad.close()
     
-    """ def uploadBlockchainToServer(self):
-        filePath = filedialog.askopenfilename()
-        if not filePath:
-            return
-        fileName = os.path.basename(filePath)
-        if fileName[-4:] != ".txt":
-            messagebox.showerror(message="This cant be an valid Blockchain haven't found .txt")
-            return
-        client = blockchainClient()
-        try:
-            client.upload_File(filePath)
-        except Exception:
-            return 
-        self.uploadedBlockchainLabel.config(text=fileName)    
-    def uploadCertificateToServer(self):
-        filePath = filedialog.askopenfilename()
-        if not filePath:
-            return
-        fileName = os.path.basename(filePath)
-        if fileName[-5:] != ".cert":
-            messagebox.showerror(message="This cant be an valid Certificate haven't found .cert")
-            return
-        client = blockchainClient()
-        try:
-            client.upload_File(filePath)
-        except Exception:
-            return 
-        self.uploadedCertificateLabel.config(text=fileName)  
-    def uploadKeyFileFromCurrentUser(self):
-        client = blockchainClient()
-        if client.check_if_file_exists_on_server('keys/' + self.successfullyLoggedInUser +'Public.pem'):
-            return
-        client.upload_key_File('keys/' + self.successfullyLoggedInUser +'Public.pem')
-    def validateBlockchainWithCertificate(self):
-        if self.uploadedBlockchainLabel['text'] == "None":
-            messagebox.showinfo(message="Please upload a Blockchain first")
-            return
-        if self.uploadedCertificateLabel['text'] == "None":
-            messagebox.showinfo(message="Please upload a Certificate first")
-            return
-        if not self.userWhoSignedTheCertificateEntry.get():
-            messagebox.showinfo(message="Please enter the User who signed the Certificate")
-            return
-        client = blockchainClient()
-        response = client.check_If_Blockchain_is_valid_for_user(self.userWhoSignedTheCertificateEntry.get(), 'blockchains/'+self.uploadedBlockchainLabel['text'])
-        if response.strip("b''") == 'True':
-            messagebox.showinfo(message="Certificate for " + self.uploadedBlockchainLabel['text'] + " is Valid")
-            self.uploadedCertificateLabel['text'] = "None"
-            self.uploadedBlockchainLabel['text'] = "None"
-        else:
-            messagebox.showinfo(message=response)
-    """
     #Buttons/Labels add
     def addBlenderAndGifButtons(self):
         self.startBackGifFrame = tk.Frame(self.master)
@@ -523,3 +500,57 @@ class MainApplication(tk.Frame):
         return True
     def updateInfoPanel(self):
         self.blockCountOfBlockchain.config(text="Blocks: \n" +str(self.currentBlockchain.getLatestBlock().block_Header.index))
+
+    #old
+    """ def uploadBlockchainToServer(self):
+        filePath = filedialog.askopenfilename()
+        if not filePath:
+            return
+        fileName = os.path.basename(filePath)
+        if fileName[-4:] != ".txt":
+            messagebox.showerror(message="This cant be an valid Blockchain haven't found .txt")
+            return
+        client = blockchainClient()
+        try:
+            client.upload_File(filePath)
+        except Exception:
+            return 
+        self.uploadedBlockchainLabel.config(text=fileName)    
+    def uploadCertificateToServer(self):
+        filePath = filedialog.askopenfilename()
+        if not filePath:
+            return
+        fileName = os.path.basename(filePath)
+        if fileName[-5:] != ".cert":
+            messagebox.showerror(message="This cant be an valid Certificate haven't found .cert")
+            return
+        client = blockchainClient()
+        try:
+            client.upload_File(filePath)
+        except Exception:
+            return 
+        self.uploadedCertificateLabel.config(text=fileName)  
+    def uploadKeyFileFromCurrentUser(self):
+        client = blockchainClient()
+        if client.check_if_file_exists_on_server('keys/' + self.successfullyLoggedInUser +'Public.pem'):
+            return
+        client.upload_key_File('keys/' + self.successfullyLoggedInUser +'Public.pem')
+    def validateBlockchainWithCertificate(self):
+        if self.uploadedBlockchainLabel['text'] == "None":
+            messagebox.showinfo(message="Please upload a Blockchain first")
+            return
+        if self.uploadedCertificateLabel['text'] == "None":
+            messagebox.showinfo(message="Please upload a Certificate first")
+            return
+        if not self.userWhoSignedTheCertificateEntry.get():
+            messagebox.showinfo(message="Please enter the User who signed the Certificate")
+            return
+        client = blockchainClient()
+        response = client.check_If_Blockchain_is_valid_for_user(self.userWhoSignedTheCertificateEntry.get(), 'blockchains/'+self.uploadedBlockchainLabel['text'])
+        if response.strip("b''") == 'True':
+            messagebox.showinfo(message="Certificate for " + self.uploadedBlockchainLabel['text'] + " is Valid")
+            self.uploadedCertificateLabel['text'] = "None"
+            self.uploadedBlockchainLabel['text'] = "None"
+        else:
+            messagebox.showinfo(message=response)
+    """

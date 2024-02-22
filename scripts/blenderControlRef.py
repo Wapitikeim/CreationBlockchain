@@ -54,7 +54,7 @@ def writeUndoStepsIntoFile():
     undo_steps_dump = binary_stream.getvalue().decode(sys.stdout.encoding)
     binary_stream.close()
     undo_steps = undo_steps_dump.split("\n")[1:-1]
-    with open('C:/Users/Wenz/Desktop/CreationBlockchain/scripts/undo_log.txt', 'w') as undoSteps:
+    with open('INSERTPATH/scripts/undo_log.txt', 'w') as undoSteps:
         i = 0
         for step in undo_steps:
             undoSteps.write(step)

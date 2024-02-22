@@ -164,7 +164,7 @@ class Blockchain:
     #Add Block triggerd from Outside(with b64encoded Image Data)
     def addNewBlockForScreenshots(self, newBlock):
         newBlock.block_Header.hashFromPreviousBlock = self.getLatestBlock().block_Header.hashForThisBlock
-        newBlock.block_Header.signatureHashPrevBlock = create_signature_for_message(self.getLatestBlock().block_Header.hashFromPreviousBlock.encode(), self.loadedPrivateKey)
+        newBlock.block_Header.signatureHashPrevBlock = create_signature_for_message(newBlock.block_Header.hashFromPreviousBlock.encode(), self.loadedPrivateKey)
         newBlock.block_Header.hashForThisBlock = newBlock.calcHash()
         self.writeScreenshotBlockToBlockchainFile(newBlock)
         newBlock.block_Data.data1 = io.BytesIO(base64.b64decode(newBlock.block_Data.data1))
