@@ -69,7 +69,9 @@ class MainApplication(tk.Frame):
     userWhoSignedTheCertificateLabel  = tk.Label
     userWhoSignedTheCertificateEntry  = tk.Entry
     loadedPublicKeyPath = "None"
+    loadedPublicKeyPathLabel = tk.Label
     blockchainToVerifyPath = "None"
+    blockchainToVerifyLabel = tk.Label
 
     #Frames
     global loginCreateFrame 
@@ -107,18 +109,20 @@ class MainApplication(tk.Frame):
         self.master.mainloop()
     def checkOnBlenderStartBat(self):
         messagebox.showinfo(title="Blender Path", message="Please set the Folder where your Blender installation is located. \n Normally found under \"C:/ProgrammFiles/BlenderFoundation\"")
-        filePath = filedialog.askdirectory()
+        filePath = filedialog.askdirectory(initialdir="C:/Program Files/Blender Foundation/")
         if not filePath:
+            messagebox.showerror(message="Please enter a valid FilePath!")
             raise Exception("Please enter a valid FilePath!") 
         if not os.access(f"{filePath}/blender.exe", os.R_OK):
+            messagebox.showerror(message="This cant be the right folder couldnt find blender.exe")
             raise Exception("This cant be the right folder couldnt find blender.exe")
         batCreator = open("scripts/blenderStart.bat", "w")
         batCreator.write("@echo off \n")
         if filePath[0] != "C":
-            batCreator.write(f"{filePath[0]}\n")
+            batCreator.write(f"{filePath[0]}:\n")
         batCreator.write(f"cd {filePath}/ \n")
         workingDic = os.path.abspath(os.getcwd())
-        batCreator.write(f"blender --log \"*operator*\" --log-file {workingDic}/scripts/Log.txt --log-level 1 --python-use-system-env --python {workingDic}/scripts/blenderControl.py \n")
+        batCreator.write(f"blender --log \"*operator*\" --log-file \"{workingDic}/scripts/Log.txt\" --log-level 1 --python-use-system-env --python \"{workingDic}/scripts/blenderControl.py\" \n")
         batCreator.close()
 
         #Adjust blenderControl.py
@@ -208,6 +212,10 @@ class MainApplication(tk.Frame):
         self.removeLogin()
         self.addLogin() 
     def createNewUser(self):
+        if not os.access("scripts/UserDatabase.txt", os.R_OK):
+            print("Userbase not found - creating")
+            createUserDB = open("scripts/UserDatabase.txt", "w")
+            createUserDB.close()
         if self.checkIfGivenUserExists():
             userID = self.usernameEntry.get()
             password = self.passwordEntry.get()
@@ -294,7 +302,7 @@ class MainApplication(tk.Frame):
         else:
             messagebox.showinfo(message="Public key already uploaded")
     def getPublicKeyFromServer(self):
-        filePath = filedialog.askopenfilename()
+        filePath = filedialog.askopenfilename(initialdir=f"{os.path.abspath(os.getcwd())}/blockchains/")
         if not filePath:
             return
         reader = open(filePath, "r")
@@ -312,9 +320,12 @@ class MainApplication(tk.Frame):
             self.loadedPublicKeyPath = answer
             self.blockchainToVerifyPath = filePath
             messagebox.showinfo(message=f"Successfully loaded Public key to corresponding Blockchain {os.path.basename(filePath)} from Server")
+        self.removeValidationServer()
+        self.addValidationServer()
     def validateBlockchainWithPublicKey(self):
         if self.loadedPublicKeyPath == "None":
             messagebox.showinfo(message="Please ask the server for a Public Key first")
+            return
         publicKey = load_public_key_with_filepath(self.loadedPublicKeyPath)
         blockchainToLoad = open(self.blockchainToVerifyPath, "r")
         lines = blockchainToLoad.read().splitlines()
@@ -341,6 +352,9 @@ class MainApplication(tk.Frame):
         os.mkdir("tmp/")
         
         blockchainToLoad.close()
+        
+        self.removeValidationServer()
+        self.addValidationServer()
     
     #Buttons/Labels add
     def addBlenderAndGifButtons(self):
@@ -440,10 +454,12 @@ class MainApplication(tk.Frame):
         self.validationServerFrame = tk.Frame(self.master,width=self.master.winfo_width(), height=self.master.winfo_height())
         #self.validationServerFrame.columnconfigure(1, weight=1)
         self.validationServerFrame.rowconfigure(2, weight=1)
-        self.backFromBlockchainValidatorButton = tk.Button(self.validationServerFrame,text="Back", command=self.removeValidationServer)
+        self.backFromBlockchainValidatorButton = tk.Button(self.validationServerFrame,text="Back", command=lambda:(self.removeValidationServer(), self.addLogin()))
         self.blockcainToVerifyButton = tk.Button(self.validationServerFrame, text="Enter Blockchain To verify", command=self.getPublicKeyFromServer)
         #self.uploadCertificateToServerButton = tk.Button(self.validationServerFrame, text="Upload Certificate", command=self.uploadCertificateToServer)
         self.pingServerButton = tk.Button(self.validationServerFrame, text="Ping Server", command=self.pingServer)
+        self.blockchainToVerifyLabel = tk.Label(self.validationServerFrame, text=os.path.basename(self.blockchainToVerifyPath))
+        self.loadedPublicKeyPathLabel = tk.Label(self.validationServerFrame, text=os.path.basename(self.loadedPublicKeyPath))
         #self.uploadedBlockchainLabel = tk.Label(self.validationServerFrame, text="None")
         #self.uploadedCertificateLabel = tk.Label(self.validationServerFrame, text="None")
         #self.userWhoSignedTheCertificateLabel = tk.Label(self.validationServerFrame, text="Enter User")
@@ -459,6 +475,8 @@ class MainApplication(tk.Frame):
         self.backFromBlockchainValidatorButton.grid(column=0, row=4, sticky="w")
         self.verifyBlockchainWithPublicKeyButton.grid(column=2, row=4, sticky="e")
         self.pingServerButton.grid(column=1, row=4, sticky="e")
+        self.blockchainToVerifyLabel.grid(column=0, row=1, sticky="w")
+        self.loadedPublicKeyPathLabel.grid(column=0, row=2, sticky="w")
 
     #Buttons/Labels remove
     def removeBlenderAndGifButtons(self):
@@ -479,7 +497,6 @@ class MainApplication(tk.Frame):
             pass
     def removeValidationServer(self):
         self.validationServerFrame.pack_forget()
-        self.addLogin()
     #util
     def checkIfGivenUserExists(self) ->bool:
         userID = self.usernameEntry.get()
