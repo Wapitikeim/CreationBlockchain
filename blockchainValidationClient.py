@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives import serialization
 SEPERATOR = "<SEPERATOR>" 
 BUFFER_SIZE = 4096
 
-HOST = "192.168.1.195"
+HOST = "localhost"
 PORT = 5001 
 
 class blockchainClient():

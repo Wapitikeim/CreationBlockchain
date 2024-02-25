@@ -151,8 +151,6 @@ def decrypt_Message_With_Private_key(cipher, private_key):
 
 #test = get_SHA512_Hash_from_File("keys/AlicePublic.pem")
 #print(test)
-
-
 #message = get_SHA256_Hash_from_File("blockchains/Winterexpo.txt").encode()
 #print(message)
 #test = encrypt_Message_With_Public_key(message, load_public_key("Winterexpo"))

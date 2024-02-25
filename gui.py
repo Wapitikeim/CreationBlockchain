@@ -108,14 +108,14 @@ class MainApplication(tk.Frame):
     def start(self):
         self.master.mainloop()
     def checkOnBlenderStartBat(self):
-        messagebox.showinfo(title="Blender Path", message="Please set the Folder where your Blender installation is located. \n Normally found under \"C:/ProgrammFiles/BlenderFoundation\"")
+        messagebox.showinfo(title="Blender Path", message="Please set the folder to where your Blender installation is located. \n Normally found under \"C:/ProgrammFiles/BlenderFoundation\"")
         filePath = filedialog.askdirectory(initialdir="C:/Program Files/Blender Foundation/")
         if not filePath:
             messagebox.showerror(message="Please enter a valid FilePath!")
             raise Exception("Please enter a valid FilePath!") 
         if not os.access(f"{filePath}/blender.exe", os.R_OK):
-            messagebox.showerror(message="This cant be the right folder couldnt find blender.exe")
-            raise Exception("This cant be the right folder couldnt find blender.exe")
+            messagebox.showerror(message="This is not a valid folder. Could not find blender.exe")
+            raise Exception("This is not a valid folder. Could not find blender.exe")
         batCreator = open("scripts/blenderStart.bat", "w")
         batCreator.write("@echo off \n")
         if filePath[0] != "C":
